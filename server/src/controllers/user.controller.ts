@@ -11,6 +11,12 @@ class Controller {
     const user = await UserService.loginUser(body);
     return c.json(user, 200);
   }
+  async authUser(c: any) {
+    const token = c.req.header("authorization");
+    const user = await UserService.authUser(token.split(" ")[1]);
+    return c.json(user, 200);
+  }
+
   async getUsers(c: any) {
     const users = await UserService.getUsers();
     return c.json(users, 200);

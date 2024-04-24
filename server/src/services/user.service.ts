@@ -1,8 +1,11 @@
+import { User } from "./../models/user.model";
 import { UserLoginDto } from "../dts/user/user.login.dto";
 import { UserPostDto } from "../dts/user/user.post.dto";
 import bcrypt from "bcrypt";
-import { User } from "../models/user.model";
+import { sign, verify } from "hono/jwt";
 import { Database } from "../config/database";
+import { eq } from "drizzle-orm";
+import { UserGetDto } from "../dts/user/user.get.dto";
 
 class Service {
   async createUser(user: UserPostDto) {
@@ -15,13 +18,49 @@ class Service {
       .returning();
     return newUser;
   }
-  async loginUser(user: UserLoginDto) {
-    const hashedPassword = await bcrypt.compare(
-      user.password,
-      "$2b$12$p5UAtDjM.twlBhnnhktKnOzMNnQvSYkj1YFsi8y2DWb3RnTU1NJta"
+
+  async loginUser({ email, password }: UserLoginDto) {
+    const user = await Database.pgClient()
+      .select()
+      .from(User)
+      .where(eq(User.email, email));
+    if (user.length <= 0) {
+      throw new Error("User does not exist");
+    }
+    const {
+      id,
+      email: userEmail,
+      password: encryptedPassword,
+    } = user[0] as UserGetDto;
+    const matchPassword = bcrypt.compare(password, encryptedPassword);
+    if (!matchPassword) {
+      throw new Error("Invalid email or password");
+    }
+    const accessToken = await sign(
+      { id, email: userEmail },
+      process.env.JWT_SECRET as string
     );
-    return hashedPassword;
+    return { accessToken };
   }
+
+  async authUser(token: string) {
+    const isVerified = await verify(token, process.env.JWT_SECRET as string);
+    if (!isVerified) {
+      throw new Error("Unauthenticated");
+    }
+    const user = await Database.pgClient()
+      .select()
+      .from(User)
+      .where(eq(User.id, isVerified.id));
+    if (user.length <= 0) {
+      throw new Error("User does not exist");
+    }
+
+    const { id, name, email, createdAt, updatedAt } = user[0] as UserGetDto;
+
+    return { id, name, email, createdAt, updatedAt };
+  }
+
   async getUsers() {
     return [];
   }

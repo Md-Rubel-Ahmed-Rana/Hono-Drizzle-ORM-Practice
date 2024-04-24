@@ -9,4 +9,6 @@ userRoutes.post("/register", UserController.createUser);
 
 userRoutes.post("/login", UserController.loginUser);
 
+userRoutes.get("/auth", UserController.authUser);
+
 export default userRoutes;
