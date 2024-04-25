@@ -4,6 +4,7 @@ import { NewPost } from "../dts/post/post.create.dto";
 import { posts } from "../models/post.model";
 import { HTTPException } from "hono/http-exception";
 import { User } from "../models/user.model";
+import { IPost } from "../dts/post/post.get.dto";
 
 class Service {
   async createPost(data: NewPost) {
@@ -28,6 +29,25 @@ class Service {
       .rightJoin(User, eq(User.id, posts.user));
 
     return data;
+  }
+
+  async updatePost(postId: string, updatedData: IPost) {
+    if (!postId) {
+      throw new HTTPException(400, { message: "Post id required" });
+    }
+    const updatedUserId = await Database.pgClient()
+      .update(posts)
+      .set({ ...updatedData })
+      .where(eq(posts.id, postId))
+      .returning();
+    return updatedUserId[0];
+  }
+  async deletePost(postId: string) {
+    const deletedUserIds: { id: string }[] = await Database.pgClient()
+      .delete(posts)
+      .where(eq(posts.id, postId))
+      .returning({ id: posts.id });
+    return deletedUserIds[0];
   }
 }
 

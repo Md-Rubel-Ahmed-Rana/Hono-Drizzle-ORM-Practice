@@ -16,6 +16,25 @@ class Controller {
       throw new HTTPException(error.status, { message: error?.message });
     }
   }
+  async updatePost(c: any) {
+    try {
+      const postId = c.req.param("id");
+      const body = await c.req.json();
+      const data = await PostService.updatePost(postId, body);
+      return c.json({ message: "Post updated successfully", data });
+    } catch (error: any) {
+      throw new HTTPException(error.status, { message: error?.message });
+    }
+  }
+  async deletePost(c: any) {
+    try {
+      const postId = c.req.param("id");
+      const data = await PostService.deletePost(postId);
+      return c.json({ message: "Post deleted successfully", data });
+    } catch (error: any) {
+      throw new HTTPException(error.status, { message: error?.message });
+    }
+  }
 }
 
 export const PostController = new Controller();
