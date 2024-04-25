@@ -1,8 +1,11 @@
 import { Hono } from "hono";
-import userRoutes from "./user.routes";
+import { PostRoutes } from "./post.routes";
+import { UserRoutes } from "./user.routes";
 
-const rootRoutes = new Hono();
+const router = new Hono();
 
-rootRoutes.route("/user", userRoutes);
+router.route("/user", UserRoutes);
 
-export default rootRoutes;
+router.route("/post", PostRoutes);
+
+export const RootRoute = router;

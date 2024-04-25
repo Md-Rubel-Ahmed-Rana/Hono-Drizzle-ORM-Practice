@@ -1,11 +1,11 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import rootRoutes from "./routes/root.route";
 import { Database } from "./config/database";
 import dotenv from "dotenv";
 import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
+import { RootRoute } from "./routes/root.route";
 
 dotenv.config();
 
@@ -21,7 +21,7 @@ app.get("/", (c) => {
   return c.text("Hello Hono!");
 });
 
-app.route("/api/v1", rootRoutes);
+app.route("/api/v1", RootRoute);
 
 app.notFound((c) => {
   return c.text("Custom 404 Message", 404);
