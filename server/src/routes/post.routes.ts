@@ -5,4 +5,6 @@ const router = new Hono();
 
 router.post("/create", PostController.createPost);
 
+router.get("/my-posts/:id", PostController.myPosts);
+
 export const PostRoutes = router;

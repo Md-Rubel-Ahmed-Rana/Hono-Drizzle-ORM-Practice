@@ -6,10 +6,13 @@ import { sign, verify } from "hono/jwt";
 import { Database } from "../config/database";
 import { eq } from "drizzle-orm";
 import { UserGetDto } from "../dts/user/user.get.dto";
+import { HTTPException } from "hono/http-exception";
 
 class Service {
   async createUser(user: UserPostDto) {
-    console.log(user);
+    if (!user) {
+      throw new HTTPException(400, { message: "User data required" });
+    }
     const hashedPassword = await bcrypt.hash(user.password, 12);
     user.password = hashedPassword;
     const newUser = await Database.pgClient()
@@ -25,7 +28,7 @@ class Service {
       .from(User)
       .where(eq(User.email, email));
     if (user.length <= 0) {
-      throw new Error("User does not exist");
+      throw new HTTPException(404, { message: "User not found" });
     }
     const {
       id,
@@ -34,7 +37,7 @@ class Service {
     } = user[0] as UserGetDto;
     const matchPassword = bcrypt.compare(password, encryptedPassword);
     if (!matchPassword) {
-      throw new Error("Invalid email or password");
+      throw new HTTPException(404, { message: "Invalid email or password" });
     }
     const accessToken = await sign(
       { id, email: userEmail },
@@ -44,16 +47,19 @@ class Service {
   }
 
   async authUser(token: string) {
+    if (!token) {
+      throw new HTTPException(400, { message: "Invalid token" });
+    }
     const isVerified = await verify(token, process.env.JWT_SECRET as string);
     if (!isVerified) {
-      throw new Error("Unauthenticated");
+      throw new HTTPException(401, { message: "Unauthenticated" });
     }
     const user = await Database.pgClient()
       .select()
       .from(User)
       .where(eq(User.id, isVerified.id));
     if (user.length <= 0) {
-      throw new Error("User does not exist");
+      throw new HTTPException(404, { message: "User not found" });
     }
 
     const { id, name, email, createdAt, updatedAt } = user[0] as UserGetDto;
