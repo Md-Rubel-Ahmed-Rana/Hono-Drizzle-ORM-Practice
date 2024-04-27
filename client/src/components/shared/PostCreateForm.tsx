@@ -23,7 +23,7 @@ const PostCreateForm: React.FC<Props> = ({ setIsPost }: Props) => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form className="p-4" onSubmit={handleSubmit}>
       <Typography variant="h5">Create Post</Typography>
       <TextField
         required

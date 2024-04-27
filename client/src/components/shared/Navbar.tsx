@@ -159,7 +159,7 @@ export default function Navbar() {
   );
 
   return (
-    <Box sx={{ flexGrow: 1 }}>
+    <Box sx={{ flexGrow: 1, position: "sticky" }}>
       <AppBar position="static">
         <Toolbar>
           <IconButton
@@ -186,6 +186,7 @@ export default function Navbar() {
               <SearchIcon />
             </SearchIconWrapper>
             <StyledInputBase
+              sx={{ width: 800 }}
               placeholder="Search…"
               inputProps={{ "aria-label": "search" }}
             />

@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import PostCreateForm from "../shared/PostCreateForm";
+import PostSkeleton from "../skeletons/PostSkeleton";
 
 const MiddleComponent = () => {
   const [isPost, setIsPost] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   return (
     <div>
@@ -20,6 +22,7 @@ const MiddleComponent = () => {
       )}
 
       {isPost && <PostCreateForm setIsPost={setIsPost} />}
+      {loading && <PostSkeleton />}
     </div>
   );
 };
