@@ -10,7 +10,6 @@ import Image from "next/image";
 const ProfileCard = () => {
   return (
     <Card
-      variant="outlined"
       className="flex flex-col justify-center items-center"
       sx={{ maxWidth: 345 }}
     >

@@ -8,7 +8,7 @@ const PostSkeleton = () => {
   return (
     <div className="px-2 flex flex-col gap-10">
       {Array.from({ length: 5 }).map((index) => (
-        <div className="shadow-md p-3 border" key={Math.random()}>
+        <div className="shadow-sm p-3 rounded-md" key={Math.random()}>
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Box sx={{ margin: 1 }}>
               <Skeleton variant="circular">

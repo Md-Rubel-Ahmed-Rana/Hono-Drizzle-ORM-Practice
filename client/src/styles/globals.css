@@ -2,6 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  padding: 0%;
+  margin: 0%;
+  box-sizing: border-box;
+}
+
+/* For Webkit browsers (Chrome, Safari, newer versions of Opera) */
+::-webkit-scrollbar {
+  width: 0px;
+}
 
 @layer utilities {
   .text-balance {

@@ -44,7 +44,7 @@ type Props = {
 
 const RightSidBar = ({ setSelectedItem, loading }: Props) => {
   return (
-    <div className="h-full overflow-hidden">
+    <div className="h-full overflow-hidden shadow-md">
       {loading ? <ProfileSkeleton /> : <ProfileCard />}
 
       {loading ? (
