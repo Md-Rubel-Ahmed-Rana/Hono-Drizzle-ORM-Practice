@@ -21,7 +21,7 @@ function Copyright(props: any) {
     >
       {"Copyright © "}
       <Link color="inherit" href="#">
-        Network Nook
+        Network Hook
       </Link>
       <span className="ml-2">{new Date().getFullYear()}</span>
     </Typography>

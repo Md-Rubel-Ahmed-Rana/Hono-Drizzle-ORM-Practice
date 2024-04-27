@@ -20,8 +20,8 @@ function Copyright(props: any) {
       {...props}
     >
       {"Copyright © "}
-      <Link color="inherit" href="https://mui.com/">
-        Network Nook
+      <Link color="inherit" href="#">
+        Network Hook
       </Link>{" "}
       {new Date().getFullYear()}
       {"."}

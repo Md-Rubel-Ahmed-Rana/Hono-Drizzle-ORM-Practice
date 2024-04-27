@@ -1,8 +1,25 @@
+import HeadTag from "@/components/shared/Head";
+import { NextPageWithLayout } from "./_app";
+import LoggedInLayout from "@/components/layout/LoggedInLayout";
 import NoLoggedInLayout from "@/components/layout/NoLoggedInLayout";
+import HomePage from "@/components/home";
 
-export default function Home() {
-  const user = false;
+const Home: NextPageWithLayout = () => {
+  const user = true;
   return (
-    <main>{user ? <h3>You are logged in</h3> : <NoLoggedInLayout />}</main>
+    <>
+      <HeadTag title="Home" description="Social Platform" keywords="network" />
+      <main>
+        {user ? (
+          <LoggedInLayout>
+            <HomePage />
+          </LoggedInLayout>
+        ) : (
+          <NoLoggedInLayout />
+        )}
+      </main>
+    </>
   );
-}
+};
+
+export default Home;

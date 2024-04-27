@@ -10,7 +10,7 @@ const LoggedInLayout = ({ children }: Props) => {
   return (
     <div>
       <Navbar />
-      {children}
+      <section>{children}</section>
       <Footer />
     </div>
   );
