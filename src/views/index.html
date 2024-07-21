@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hono & Drizzle</title>
+    <style>
+      body {
+        margin: 0%;
+        padding: 0%;
+        box-sizing: border-box;
+        background-color: aliceblue;
+      }
+      header {
+        background-color: blue;
+        margin: 0%;
+        padding: 10px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0%;
+      }
+      header h2 {
+        margin: 0%;
+        color: white;
+      }
+      header nav ul {
+        display: flex;
+        align-items: center;
+        list-style: none;
+        gap: 10px;
+      }
+      .nav-item {
+        color: white;
+        text-decoration: none;
+        font-size: 20px;
+        font-family: sans-serif;
+        background-color: rgba(69, 69, 134, 0.397);
+        padding: 5px 20px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+      }
+
+      .nav-item:hover {
+        background-color: rgb(69, 69, 134);
+      }
+
+      main {
+        background-color: aliceblue;
+        min-height: 100vh;
+        padding-bottom: 100px;
+      }
+      #posts-container {
+        padding: 10px;
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .post-card {
+        border: 1px solid skyblue;
+        margin: 0px auto;
+        padding: 20px;
+        width: 50%;
+        border-radius: 10px;
+        background-color: white;
+      }
+      .poster-card-wrapper {
+        display: flex;
+        justify-content: space-between;
+      }
+      .profile-picture {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        border: 2px solid rgba(0, 0, 255, 0.493);
+      }
+      .poster-card {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+      }
+      .poster-name {
+        font-size: 20px;
+        margin: 0px;
+      }
+      .post-date {
+        margin: 0px;
+      }
+
+      .post-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+      }
+      .post-actions > button {
+        width: 100%;
+        padding: 5px 10px;
+      }
+      .post-dropdown {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 5px;
+      }
+      .post-edit-button {
+        border: 1px solid;
+        padding: 2px 10px;
+        font-size: 12px;
+        background-color: rgb(241, 239, 239);
+        cursor: pointer;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h2>Welcome to Hono & Drizzle</h2>
+      <nav>
+        <ul>
+          <li><a class="nav-item" href="/">Home</a></li>
+          <li id="new-post-btn">
+            <a class="nav-item" href="/new-post">Add post</a>
+          </li>
+          <li id="register-btn">
+            <a class="nav-item" href="/register">Register</a>
+          </li>
+          <li id="login-btn"><a class="nav-item" href="/login">Login</a></li>
+          <li id="profile-btn">
+            <a class="nav-item" href="/profile">Profile</a>
+          </li>
+          <li id="logout-btn"><button class="nav-item">Logout</button></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <section id="posts-container"></section>
+    </main>
+    <script>
+      const postContainer = document.getElementById("posts-container");
+      const token = localStorage.getItem("accessToken");
+      const parsedToken = JSON.parse(token);
+      if (parsedToken) {
+        document.getElementById("logout-btn").style.display = "block";
+        document.getElementById("new-post-btn").style.display = "block";
+        document.getElementById("register-btn").style.display = "none";
+        document.getElementById("login-btn").style.display = "none";
+      } else {
+        document.getElementById("logout-btn").style.display = "none";
+        document.getElementById("new-post-btn").style.display = "none";
+        document.getElementById("register-btn").style.display = "block";
+        document.getElementById("login-btn").style.display = "block";
+        window.location.replace("/login");
+      }
+
+      const handleFetchUser = async () => {
+        try {
+          const resUser = await fetch("http://localhost:5000/api/v1/auth", {
+            headers: { authorization: parsedToken },
+          });
+          const user = await resUser.json();
+          return user;
+        } catch (error) {
+          console.log("Failed to fetch user", error);
+        }
+      };
+
+      // fetch all the posts
+      fetch("http://localhost:5000/api/v1/post")
+        .then((res) => res.json())
+        .then((data) => {
+          data.posts.forEach((post) => {
+            handleDisplayPosts(post);
+          });
+        });
+
+      // display post
+      const handleDisplayPosts = async (post) => {
+        const currentUser = await handleFetchUser();
+
+        const postCard = document.createElement("div");
+        postCard.classList.add("post-card");
+        // poster infos
+        const posterCardWrapper = document.createElement("div");
+        posterCardWrapper.classList.add("poster-card-wrapper");
+        const posterCard = document.createElement("div");
+        posterCard.classList.add("poster-card");
+        const postDropdown = document.createElement("div");
+        postDropdown.classList.add("post-dropdown");
+        const postDeleteButton = document.createElement("button");
+        postDeleteButton.dataset.postId = post.post.id;
+        postDeleteButton.innerHTML = "Delete";
+        postDeleteButton.addEventListener("click", handleDeletePost);
+        const postEditButton = document.createElement("a");
+        postEditButton.classList.add("post-edit-button");
+        postEditButton.innerHTML = "Edit";
+        postEditButton.setAttribute(
+          "href",
+          `/posts/post/edit/${post.post.id}?author=${post?.user?.name}&title=${post.post.title}&description=${post.post.description}`
+        );
+        const posterNameDateCard = document.createElement("div");
+        posterNameDateCard.classList.add("posterNameDateCard");
+        const posterName = document.createElement("h4");
+        posterName.classList.add("poster-name");
+        posterName.innerHTML = post?.user?.name;
+        const postDate = document.createElement("p");
+        postDate.classList.add("post-date");
+        const newDate = new Date(new Date(post?.post?.createdAt));
+        const hours = newDate.getUTCHours();
+        const minutes = newDate.getUTCMinutes();
+        const seconds = newDate.getUTCSeconds();
+        postDate.innerHTML = `Posted at: ${hours}:${minutes}:${seconds}`;
+        const posterPicture = document.createElement("img");
+        posterPicture.src = post?.user?.image;
+        posterPicture.classList.add("profile-picture");
+
+        posterNameDateCard.appendChild(posterName);
+        posterNameDateCard.appendChild(postDate);
+        posterCard.appendChild(posterPicture);
+        posterCard.appendChild(posterNameDateCard);
+        posterCard.appendChild(posterNameDateCard);
+
+        if (post.user.id === currentUser.id) {
+          postDropdown.appendChild(postEditButton);
+          postDropdown.appendChild(postDeleteButton);
+        }
+
+        posterCardWrapper.appendChild(posterCard);
+        posterCardWrapper.appendChild(postDropdown);
+        postCard.appendChild(posterCardWrapper);
+
+        // post info
+        const postTitle = document.createElement("h3");
+        postTitle.innerHTML = post?.post?.title;
+        const postDecs = document.createElement("p");
+        postDecs.innerHTML = post?.post?.description;
+        postCard.appendChild(postTitle);
+        postCard.appendChild(postDecs);
+
+        // post actions
+        const postActions = document.createElement("div");
+        postActions.classList.add("post-actions");
+        const likeButton = document.createElement("button");
+        likeButton.innerHTML = "Like";
+        likeButton.dataset.id = post.post.id;
+        likeButton.addEventListener("click", handleLikeToPost);
+        const commentButton = document.createElement("button");
+        commentButton.innerHTML = "Comment";
+        commentButton.dataset.id = post.post.id;
+        commentButton.addEventListener("click", handleCommentToPost);
+        postActions.appendChild(likeButton);
+        postActions.appendChild(commentButton);
+        postCard.appendChild(postActions);
+
+        postContainer.appendChild(postCard);
+      };
+
+      const handleDeletePost = async (event) => {
+        const postId = event.target.dataset.postId;
+        const res = await fetch(`http://localhost:5000/api/v1/post/${postId}`, {
+          method: "DELETE",
+        });
+        const result = await res.json();
+        if (result.statusCode === 200) {
+          window.location.replace("/");
+        } else {
+          alert("Post was not deleted");
+        }
+      };
+
+      // like to a post
+      const handleLikeToPost = (event) => {
+        console.log("Like to", event.target.dataset.id);
+      };
+
+      const handleCommentToPost = (event) => {
+        console.log("Comment to", event.target.dataset.id);
+      };
+
+      document.getElementById("logout-btn").addEventListener("click", () => {
+        localStorage.removeItem("accessToken");
+        window.location.reload();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register</title>
+    <style>
+      body {
+        margin: 0%;
+        padding: 0%;
+        box-sizing: border-box;
+      }
+      header {
+        background-color: blue;
+        margin: 0%;
+        padding: 20px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      header h2 {
+        margin: 0%;
+        color: white;
+      }
+      header nav ul {
+        display: flex;
+        list-style: none;
+        gap: 10px;
+      }
+      .nav-item {
+        color: white;
+        text-decoration: none;
+        font-size: 20px;
+        font-family: sans-serif;
+        background-color: rgba(69, 69, 134, 0.397);
+        padding: 5px 20px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+      }
+
+      .nav-item:hover {
+        background-color: rgb(69, 69, 134);
+      }
+      #register-section {
+        background-color: aliceblue;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+      #register-section form {
+        background-color: white;
+        padding: 40px 20px;
+        border-radius: 10px;
+        width: 300px;
+        height: 50%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      #register-section form > div {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+      #register-section form > div label {
+        font-size: 20px;
+        font-family: sans-serif;
+        font-weight: 400;
+      }
+      #register-section form > div input {
+        width: 90%;
+        padding: 10px 15px;
+        border: 1px solid rgba(0, 0, 255, 0.548);
+        border-radius: 5px;
+      }
+      #register-section form > div input:focus {
+        border: 1px solid blue;
+        outline: 1px solid rgba(0, 0, 255, 0.548);
+      }
+      #register-section form button {
+        background-color: blue;
+        padding: 10px;
+        font-size: 20px;
+        border-radius: 10px;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h2>Welcome to Hono & Drizzle</h2>
+      <nav>
+        <ul>
+          <li id="home-btn"><a class="nav-item" href="/">Home</a></li>
+          <li id="new-post-btn">
+            <a class="nav-item" href="/new-post">Add post</a>
+          </li>
+          <li id="register-btn">
+            <a class="nav-item" href="/register">Register</a>
+          </li>
+          <li id="login-btn"><a class="nav-item" href="/login">Login</a></li>
+          <li id="logout-btn"><button class="nav-item">Logout</button></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <section id="register-section">
+        <form id="register-form">
+          <div>
+            <label for="name">Name:</label>
+            <input
+              required
+              autofocus
+              type="text"
+              name="name"
+              id="name"
+              placeholder="Enter your name"
+            />
+          </div>
+          <div>
+            <label for="email">Email:</label>
+            <input
+              required
+              type="email"
+              name="email"
+              id="email"
+              placeholder="Enter your email"
+            />
+          </div>
+          <div>
+            <label for="password">Password:</label>
+            <input
+              required
+              type="password"
+              name="password"
+              id="password"
+              placeholder="Enter your password"
+            />
+          </div>
+          <button id="register-btn" type="submit">Register</button>
+        </form>
+      </section>
+    </main>
+
+    <script>
+      document
+        .getElementById("register-form")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const form = event.target;
+          const name = form.name.value;
+          const email = form.email.value;
+          const password = form.password.value;
+          try {
+            const res = await fetch(
+              "http://localhost:5000/api/v1/auth/register",
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                method: "POST",
+                body: JSON.stringify({ name, email, password }),
+              }
+            );
+            const result = await res.json();
+            if (result.statusCode === 201) {
+              window.location.replace("/login");
+            } else {
+              alert("Register was failed");
+            }
+          } catch (error) {
+            console.log("Error to register", error);
+            alert("There was an error to register");
+          }
+        });
+      const token = localStorage.getItem("accessToken");
+      const parsedToken = JSON.parse(token);
+      if (parsedToken) {
+        document.getElementById("logout-btn").style.display = "block";
+        document.getElementById("new-post-btn").style.display = "block";
+        document.getElementById("register-btn").style.display = "none";
+        document.getElementById("login-btn").style.display = "none";
+        window.location.replace("/");
+      } else {
+        document.getElementById("logout-btn").style.display = "none";
+        document.getElementById("new-post-btn").style.display = "none";
+        document.getElementById("home-btn").style.display = "none";
+        document.getElementById("register-btn").style.display = "block";
+        document.getElementById("login-btn").style.display = "block";
+      }
+    </script>
+  </body>
+</html>
