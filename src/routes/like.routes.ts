@@ -3,6 +3,10 @@ import { LikeController } from "../controllers/like.controller";
 
 const router = new Hono();
 
-router.post("/add", LikeController.likeToAPost);
+router.get("/", LikeController.getAllLikes);
+
+router.get("/by-post/:postId", LikeController.getAllLikesForAPost);
+
+router.post("/", LikeController.likeToAPost);
 
 export const LikeRoutes = router;

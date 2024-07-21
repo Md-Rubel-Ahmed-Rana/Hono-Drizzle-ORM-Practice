@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hono & Drizzle</title>
+    <title>News feeds</title>
     <style>
       body {
         margin: 0%;
@@ -247,13 +247,18 @@
         const postActions = document.createElement("div");
         postActions.classList.add("post-actions");
         const likeButton = document.createElement("button");
-        likeButton.innerHTML = "Like";
+
+        // fetch likes for a post
+        const totalLikes = await handleFetchLikesForAPost(post.post.id);
+        likeButton.innerHTML =
+          totalLikes.length > 0 ? `${totalLikes.length} Likes` : "Like";
         likeButton.dataset.id = post.post.id;
         likeButton.addEventListener("click", handleLikeToPost);
         const commentButton = document.createElement("button");
         commentButton.innerHTML = "Comment";
         commentButton.dataset.id = post.post.id;
         commentButton.addEventListener("click", handleCommentToPost);
+
         postActions.appendChild(likeButton);
         postActions.appendChild(commentButton);
         postCard.appendChild(postActions);
@@ -261,8 +266,23 @@
         postContainer.appendChild(postCard);
       };
 
+      // fetch likes for a post
+      const handleFetchLikesForAPost = async (postId) => {
+        try {
+          const res = await fetch(
+            `http://localhost:5000/api/v1/like/by-post/${postId}`
+          );
+          const data = await res.json();
+          return data.likes;
+        } catch (error) {
+          console.log("Error to fetch likes", error);
+        }
+      };
+
+      // delete a post
       const handleDeletePost = async (event) => {
         const postId = event.target.dataset.postId;
+
         const res = await fetch(`http://localhost:5000/api/v1/post/${postId}`, {
           method: "DELETE",
         });
@@ -275,14 +295,31 @@
       };
 
       // like to a post
-      const handleLikeToPost = (event) => {
-        console.log("Like to", event.target.dataset.id);
+      const handleLikeToPost = async (event) => {
+        const postId = event.target.dataset.id;
+        const currentUser = await handleFetchUser();
+        const payload = { post: postId, user: currentUser.id };
+        const res = await fetch("http://localhost:5000/api/v1/like", {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+          body: JSON.stringify({ post: postId, user: currentUser.id }),
+        });
+        const result = await res.json();
+        if (result.statusCode === 201) {
+          window.location.replace("/");
+        } else {
+          alert("Post was not liked");
+        }
       };
 
+      // comment to a post
       const handleCommentToPost = (event) => {
         console.log("Comment to", event.target.dataset.id);
       };
 
+      // handle logout button
       document.getElementById("logout-btn").addEventListener("click", () => {
         localStorage.removeItem("accessToken");
         window.location.reload();

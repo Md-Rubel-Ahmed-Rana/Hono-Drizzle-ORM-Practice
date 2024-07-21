@@ -31,7 +31,10 @@ class Service {
 
   async getAllPosts() {
     const data = await pgClient()
-      .select({ post: Post, user: { id: User.id, name: User.name } })
+      .select({
+        post: Post,
+        user: { id: User.id, name: User.name },
+      })
       .from(Post)
       .innerJoin(User, eq(User.id, Post.user))
       .orderBy(desc(Post.updatedAt));
