@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Like } from "../models/like.model";
 import { pgClient } from "../utils/db.util";
 
@@ -7,7 +7,7 @@ class Service {
     const isExist = await pgClient()
       .select()
       .from(Like)
-      .where(eq(Like.user, user));
+      .where(and(eq(Like.post, post), eq(Like.user, user)));
     if (isExist.length > 0) {
       const result = await pgClient()
         .delete(Like)

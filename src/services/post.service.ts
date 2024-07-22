@@ -50,7 +50,6 @@ class Service {
   }
 
   async updatePost(postId: string, updatedData: IPost) {
-    console.log(updatedData);
     if (!postId) {
       throw new HTTPException(400, { message: "Post id required" });
     }
