@@ -11,6 +11,7 @@
         padding: 0%;
         box-sizing: border-box;
         background-color: aliceblue;
+        position: relative;
       }
 
       header {
@@ -131,6 +132,71 @@
         cursor: pointer;
         text-decoration: none;
       }
+
+      #comment-section {
+        display: none;
+      }
+
+      #comment-container {
+        position: fixed;
+        inset: 0px;
+        background-color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        opacity: 0.9;
+      }
+
+      #comment-box {
+        background-color: rgb(20, 4, 4);
+        width: 300px;
+        border-radius: 0.5rem;
+        max-width: 32rem;
+      }
+
+      #comment-form {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+        background-color: rgb(20, 4, 4);
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        opacity: 1;
+      }
+
+      .comment-input {
+        padding: 10px;
+        border: 2px solid blue;
+        border-radius: 5px;
+        width: 92%;
+        font-size: 20px;
+        opacity: 1;
+      }
+
+      .comment-input:focus {
+        outline: skyblue;
+        border: 2px solid skyblue;
+        border-radius: 5px;
+      }
+
+      .comment-btn {
+        padding: 10px;
+        border: 2px solid rgba(0, 0, 255, 0.247);
+        border-radius: 5px;
+        background-color: blue;
+        color: white;
+        cursor: pointer;
+        width: 100%;
+        opacity: 1;
+      }
+
+      .comment-btn:hover {
+        background-color: rgba(0, 0, 255, 0.658);
+      }
     </style>
   </head>
   <body>
@@ -155,6 +221,47 @@
     </header>
     <main>
       <section id="posts-container"></section>
+      <section id="comment-section">
+        <div id="comment-container">
+          <div id="comment-box">
+            <div id="comment-form">
+              <textarea
+                type="text"
+                class="comment-input"
+                id="comment-input-text"
+                name="comment"
+                rows="2"
+                cols="3"
+              ></textarea>
+              <div
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  gap: 10px;
+                  width: 100%;
+                "
+              >
+                <button
+                  style="background-color: rgb(48, 38, 38)"
+                  id="comment-submit-btn"
+                  class="comment-btn"
+                  onclick="handleCloseModal()"
+                >
+                  Cancel
+                </button>
+                <button
+                  onclick="handleCommentToAPost()"
+                  id="comment-submit-btn"
+                  class="comment-btn"
+                >
+                  Send
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
     <script>
       const postContainer = document.getElementById("posts-container");
@@ -275,6 +382,7 @@
 
         postActions.appendChild(likeButton);
         postActions.appendChild(commentButton);
+
         postCard.appendChild(postActions);
 
         postContainer.appendChild(postCard);
@@ -328,9 +436,24 @@
         }
       };
 
+      // consume the post id to comment
+      let postId = "";
+      const handleCommentToAPost = () => {
+        console.log("Send the comment text");
+        const commentText = document.getElementById("comment-input-text").value;
+        console.log({ value: commentText, postId });
+        document.getElementById("comment-section").style.display = "none";
+      };
+
       // comment to a post
       const handleCommentToPost = (event) => {
+        document.getElementById("comment-section").style.display = "block";
         console.log("Comment to", event.target.dataset.id);
+        postId = event.target.dataset.id;
+      };
+      // close comment modal
+      const handleCloseModal = () => {
+        document.getElementById("comment-section").style.display = "none";
       };
 
       // handle logout button
