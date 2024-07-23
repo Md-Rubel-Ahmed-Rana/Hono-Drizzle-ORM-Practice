@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { pgClient } from "../utils/db.util";
 import { Comment } from "../models/comment.model";
+import { User } from "../models/user.model";
 
 class Service {
   async commentToAPost({
@@ -25,8 +26,14 @@ class Service {
 
   async getAllCommentForAPost(postId: string) {
     const data = await pgClient()
-      .select()
+      .select({
+        id: Comment.id,
+        text: Comment.text,
+        createdAt: Comment.createdAt,
+        user: { id: User.id, name: User.name },
+      })
       .from(Comment)
+      .innerJoin(User, eq(User.id, Comment.user))
       .where(eq(Comment.post, postId));
     return data;
   }

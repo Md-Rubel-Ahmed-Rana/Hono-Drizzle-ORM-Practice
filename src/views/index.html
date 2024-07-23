@@ -258,13 +258,14 @@
       };
 
       // fetch all the posts
-      fetch("http://localhost:5000/api/v1/post")
-        .then((res) => res.json())
-        .then((data) => {
-          data.posts.forEach((post) => {
-            handleDisplayPosts(post);
-          });
+      const handleFetchPosts = async () => {
+        const res = await fetch("http://localhost:5000/api/v1/post");
+        const data = await res.json();
+        data.posts.forEach((post) => {
+          postContainer.innerHTML = "";
+          handleDisplayPosts(post);
         });
+      };
 
       // display post
       const handleDisplayPosts = async (post) => {
@@ -343,8 +344,9 @@
         const commentFormDiv = document.createElement("div");
         commentFormDiv.classList.add("comment-form-div");
         const commentInput = document.createElement("input");
+        commentInput.name = "comment";
         commentInput.dataset.id = post.post.id;
-        commentInput.setAttribute("id", "comment-input-tag");
+        commentInput.setAttribute("id", `comment-input-tag-${post.post.id}`);
         commentInput.classList.add("comment-input-tag");
         commentInput.type = "text";
         commentInput.placeholder = "Leave a comment";
@@ -406,21 +408,21 @@
             commentCard.classList.add("comment-card");
             const commenter = document.createElement("h3");
             commenter.classList.add("commenter");
-            commenter.innerHTML =
-              comment?.user?.name || "Name will be shown here";
+            commenter.innerHTML = comment?.user?.name;
             const commentText = document.createElement("p");
             commentText.classList.add("comment-text");
             commentText.innerHTML = comment.text;
 
             const commentDeleteBtn = document.createElement("button");
             commentDeleteBtn.dataset.id = comment.id;
+            commentDeleteBtn.dataset.postId = postId;
             commentDeleteBtn.classList.add("comment-delete-btn");
             commentDeleteBtn.innerHTML = "Delete";
             commentDeleteBtn.addEventListener("click", handleDeleteComment);
 
             commentCard.appendChild(commenter);
             commentCard.appendChild(commentText);
-            if (currentUser.id === comment.user) {
+            if (currentUser?.id === comment?.user?.id) {
               commentCard.appendChild(commentDeleteBtn);
             }
             commentContainer.appendChild(commentCard);
@@ -435,6 +437,7 @@
       // delete single comment
       const handleDeleteComment = async (event) => {
         const commentId = event.target.dataset.id;
+        const postId = event.target.dataset.postId;
         try {
           const res = await fetch(
             `http://localhost:5000/api/v1/comment/${commentId}`,
@@ -442,7 +445,8 @@
           );
           const result = await res.json();
           if (result.statusCode === 200) {
-            window.location.replace("/");
+            const getContainer = document.getElementById(`comments-${postId}`);
+            displayComments(postId, getContainer);
           } else {
             alert("Comment was not deleted");
           }
@@ -491,7 +495,7 @@
             );
             const result = await res.json();
             if (result.statusCode === 200) {
-              window.location.replace("/");
+              handleFetchPosts();
             } else {
               alert("Post was not deleted");
             }
@@ -515,7 +519,7 @@
         });
         const result = await res.json();
         if (result.statusCode === 201) {
-          window.location.replace("/");
+          handleFetchPosts();
         } else {
           alert("Post was not liked");
         }
@@ -540,9 +544,13 @@
       // comment to a post
       const handleCommentToPost = async (event) => {
         const currentUser = await handleFetchUser();
-        const text = document.getElementById("comment-input-tag").value;
         const postId = event.target.dataset.id;
-        const payload = { post: postId, text, user: currentUser.id };
+        const text = document.getElementById(`comment-input-tag-${postId}`);
+        const payload = {
+          post: postId,
+          text: text.value,
+          user: currentUser.id,
+        };
         try {
           const res = await fetch("http://localhost:5000/api/v1/comment", {
             headers: { "Content-Type": "application/json" },
@@ -551,7 +559,10 @@
           });
           const result = await res.json();
           if (result.statusCode === 201) {
-            window.location.replace("/");
+            const getContainer = document.getElementById(`comments-${postId}`);
+            getContainer.style.display = "block";
+            text.value = "";
+            displayComments(postId, getContainer);
           } else {
             alert("Comment was not posted");
           }
@@ -565,6 +576,9 @@
         localStorage.removeItem("accessToken");
         window.location.reload();
       });
+
+      // call all the default functions
+      handleFetchPosts();
     </script>
   </body>
 </html>
