@@ -173,6 +173,29 @@
         border: none;
         color: white;
       }
+
+      .comment-toggle {
+        color: blue;
+        text-decoration: underline;
+        margin-top: 5px;
+        cursor: pointer;
+      }
+
+      .comment-card {
+        background-color: rgb(232, 238, 245);
+        padding: 10px;
+        border-radius: 5px;
+        margin-top: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .commenter,
+      .comment-text {
+        margin: 0%;
+        padding: 0%;
+      }
     </style>
   </head>
   <body>
@@ -328,6 +351,18 @@
         commentSubmitBtn.innerHTML = "Send";
         commentSubmitBtn.addEventListener("click", handleCommentToPost);
 
+        // comment container
+        const commentToggle = document.createElement("a");
+        commentToggle.classList.add("comment-toggle");
+        commentToggle.innerHTML = `4 comments`;
+        commentToggle.dataset.id = post.post.id;
+        commentToggle.addEventListener("click", handleToggleCommentShow);
+        const commentContainer = document.createElement("div");
+        commentContainer.classList.add("comment-container");
+        commentContainer.style.display = "none";
+
+        commentContainer.setAttribute("id", `comments-${post.post.id}`);
+
         commentFormDiv.appendChild(commentInput);
         commentFormDiv.appendChild(commentSubmitBtn);
 
@@ -335,8 +370,62 @@
         commentDiv.appendChild(commentFormDiv);
 
         postCard.appendChild(commentDiv);
+        postCard.appendChild(commentToggle);
+        postCard.appendChild(commentContainer);
 
         postContainer.appendChild(postCard);
+      };
+
+      // show/hide comment container
+      const handleToggleCommentShow = (event) => {
+        const postId = event.target.dataset.id;
+        const getContainer = document.getElementById(`comments-${postId}`);
+        if (getContainer.style.display === "none") {
+          getContainer.style.display = "block";
+          displayComments(postId, getContainer);
+        } else {
+          getContainer.style.display = "none";
+        }
+      };
+
+      // handle displaying comments
+      const displayComments = async (postId, commentContainer) => {
+        commentContainer.innerHTML = "";
+        const comments = await fetchAllCommentsForAPost(postId);
+        if (comments?.length > 0) {
+          comments.forEach((comment) => {
+            const commentCard = document.createElement("div");
+            commentCard.classList.add("comment-card");
+            const commenter = document.createElement("h3");
+            commenter.classList.add("commenter");
+            commenter.innerHTML =
+              comment?.user?.name || "Name will be shown here";
+            const commentText = document.createElement("p");
+            commentText.classList.add("comment-text");
+            commentText.innerHTML = comment.text;
+
+            commentCard.appendChild(commenter);
+            commentCard.appendChild(commentText);
+            commentContainer.appendChild(commentCard);
+          });
+        } else {
+          const noComments = document.createElement("h3");
+          noComments.innerHTML = "Nobody comment yet. By first commenter";
+          commentContainer.appendChild(noComments);
+        }
+      };
+
+      // handle fetch comment by post id
+      const fetchAllCommentsForAPost = async (postId) => {
+        try {
+          const res = await fetch(
+            `http://localhost:5000/api/v1/comment/by-post/${postId}`
+          );
+          const data = await res.json();
+          return data.comments;
+        } catch (error) {
+          console.log("Failed to fetch comments");
+        }
       };
 
       // fetch likes for a post
