@@ -186,15 +186,22 @@
         padding: 10px;
         border-radius: 5px;
         margin-top: 10px;
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
       }
 
       .commenter,
       .comment-text {
         margin: 0%;
         padding: 0%;
+      }
+
+      .comment-delete-btn {
+        margin-top: 5px;
+        background-color: rgba(255, 0, 0, 0.596);
+        border: none;
+        padding: 3px 5px;
+        border-radius: 3px;
+        color: white;
+        cursor: pointer;
       }
     </style>
   </head>
@@ -390,6 +397,7 @@
 
       // handle displaying comments
       const displayComments = async (postId, commentContainer) => {
+        const currentUser = await handleFetchUser();
         commentContainer.innerHTML = "";
         const comments = await fetchAllCommentsForAPost(postId);
         if (comments?.length > 0) {
@@ -404,14 +412,42 @@
             commentText.classList.add("comment-text");
             commentText.innerHTML = comment.text;
 
+            const commentDeleteBtn = document.createElement("button");
+            commentDeleteBtn.dataset.id = comment.id;
+            commentDeleteBtn.classList.add("comment-delete-btn");
+            commentDeleteBtn.innerHTML = "Delete";
+            commentDeleteBtn.addEventListener("click", handleDeleteComment);
+
             commentCard.appendChild(commenter);
             commentCard.appendChild(commentText);
+            if (currentUser.id === comment.user) {
+              commentCard.appendChild(commentDeleteBtn);
+            }
             commentContainer.appendChild(commentCard);
           });
         } else {
           const noComments = document.createElement("h3");
           noComments.innerHTML = "Nobody comment yet. By first commenter";
           commentContainer.appendChild(noComments);
+        }
+      };
+
+      // delete single comment
+      const handleDeleteComment = async (event) => {
+        const commentId = event.target.dataset.id;
+        try {
+          const res = await fetch(
+            `http://localhost:5000/api/v1/comment/${commentId}`,
+            { method: "DELETE" }
+          );
+          const result = await res.json();
+          if (result.statusCode === 200) {
+            window.location.replace("/");
+          } else {
+            alert("Comment was not deleted");
+          }
+        } catch (error) {
+          console.log("Failed to delete comment", error);
         }
       };
 

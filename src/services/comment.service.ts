@@ -30,6 +30,10 @@ class Service {
       .where(eq(Comment.post, postId));
     return data;
   }
+
+  async deleteComment(commentId: string) {
+    await pgClient().delete(Comment).where(eq(Comment.id, commentId));
+  }
 }
 
 export const CommentService = new Service();

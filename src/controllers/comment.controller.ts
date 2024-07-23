@@ -33,6 +33,17 @@ class Controller {
       200
     );
   }
+  async deleteComment({ req, json }: Context) {
+    const commentId = req.param("id");
+    await CommentService.deleteComment(commentId);
+    return json(
+      {
+        statusCode: 200,
+        message: "Comment deleted successfully",
+      },
+      200
+    );
+  }
 }
 
 export const CommentController = new Controller();
