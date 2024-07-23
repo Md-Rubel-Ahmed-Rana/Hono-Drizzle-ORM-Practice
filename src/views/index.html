@@ -105,18 +105,6 @@
         margin: 0px;
       }
 
-      .post-actions {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .post-actions > button {
-        width: 100%;
-        padding: 5px 10px;
-      }
-
       .post-dropdown {
         display: flex;
         justify-content: center;
@@ -133,69 +121,57 @@
         text-decoration: none;
       }
 
-      #comment-section {
-        display: none;
-      }
-
-      #comment-container {
-        position: fixed;
-        inset: 0px;
-        background-color: white;
+      .comment-div {
         display: flex;
-        justify-content: center;
+        justify-content: space-between;
         align-items: center;
-        width: 100%;
-        opacity: 0.9;
-      }
-
-      #comment-box {
-        background-color: rgb(20, 4, 4);
-        width: 300px;
-        border-radius: 0.5rem;
-        max-width: 32rem;
-      }
-
-      #comment-form {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
         gap: 10px;
+      }
+
+      .like-btn {
+        width: 15%;
+        padding: 5px 10px;
+        cursor: pointer;
+      }
+
+      .comment-form-div {
+        width: 85%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .comment-input-tag {
         width: 100%;
-        background-color: rgb(20, 4, 4);
-        border-radius: 0.5rem;
-        padding: 1.5rem;
-        opacity: 1;
-      }
-
-      .comment-input {
-        padding: 10px;
-        border: 2px solid blue;
-        border-radius: 5px;
-        width: 92%;
-        font-size: 20px;
-        opacity: 1;
-      }
-
-      .comment-input:focus {
-        outline: skyblue;
+        padding: 6px 10px;
         border: 2px solid skyblue;
         border-radius: 5px;
       }
 
-      .comment-btn {
-        padding: 10px;
-        border: 2px solid rgba(0, 0, 255, 0.247);
-        border-radius: 5px;
-        background-color: blue;
-        color: white;
-        cursor: pointer;
-        width: 100%;
-        opacity: 1;
+      .comment-input-tag:focus {
+        border: 2px solid blue;
+        outline: blue;
       }
 
-      .comment-btn:hover {
-        background-color: rgba(0, 0, 255, 0.658);
+      .comment-btn-submit-deactive {
+        background-color: gray;
+        cursor: not-allowed;
+        width: 15%;
+        padding: 8px 10px;
+        border: none;
+        border-radius: 5px;
+        color: rgba(255, 255, 255, 0.432);
+      }
+
+      .comment-btn-submit-active {
+        background-color: blue;
+        width: 15%;
+        padding: 8px 10px;
+        cursor: pointer;
+        border-radius: 5px;
+        border: none;
+        color: white;
       }
     </style>
   </head>
@@ -221,47 +197,6 @@
     </header>
     <main>
       <section id="posts-container"></section>
-      <section id="comment-section">
-        <div id="comment-container">
-          <div id="comment-box">
-            <div id="comment-form">
-              <textarea
-                type="text"
-                class="comment-input"
-                id="comment-input-text"
-                name="comment"
-                rows="2"
-                cols="3"
-              ></textarea>
-              <div
-                style="
-                  display: flex;
-                  justify-content: space-between;
-                  align-items: center;
-                  gap: 10px;
-                  width: 100%;
-                "
-              >
-                <button
-                  style="background-color: rgb(48, 38, 38)"
-                  id="comment-submit-btn"
-                  class="comment-btn"
-                  onclick="handleCloseModal()"
-                >
-                  Cancel
-                </button>
-                <button
-                  onclick="handleCommentToAPost()"
-                  id="comment-submit-btn"
-                  class="comment-btn"
-                >
-                  Send
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
     </main>
     <script>
       const postContainer = document.getElementById("posts-container");
@@ -364,26 +299,42 @@
         postCard.appendChild(postTitle);
         postCard.appendChild(postDecs);
 
-        // post actions
-        const postActions = document.createElement("div");
-        postActions.classList.add("post-actions");
-        const likeButton = document.createElement("button");
-
-        // fetch likes for a post
+        // comment post section
         const totalLikes = await handleFetchLikesForAPost(post.post.id);
-        likeButton.innerHTML =
+        const commentDiv = document.createElement("div");
+        commentDiv.classList.add("comment-div");
+        const likeBtn = document.createElement("button");
+        likeBtn.dataset.id = post.post.id;
+        likeBtn.classList.add("like-btn");
+        likeBtn.innerHTML =
           totalLikes.length > 0 ? `${totalLikes.length} Likes` : "Like";
-        likeButton.dataset.id = post.post.id;
-        likeButton.addEventListener("click", handleLikeToPost);
-        const commentButton = document.createElement("button");
-        commentButton.innerHTML = "Comment";
-        commentButton.dataset.id = post.post.id;
-        commentButton.addEventListener("click", handleCommentToPost);
+        likeBtn.addEventListener("click", handleLikeToPost);
 
-        postActions.appendChild(likeButton);
-        postActions.appendChild(commentButton);
+        const commentFormDiv = document.createElement("div");
+        commentFormDiv.classList.add("comment-form-div");
+        const commentInput = document.createElement("input");
+        commentInput.dataset.id = post.post.id;
+        commentInput.setAttribute("id", "comment-input-tag");
+        commentInput.classList.add("comment-input-tag");
+        commentInput.type = "text";
+        commentInput.placeholder = "Leave a comment";
+        commentInput.addEventListener("keyup", handleChangeCommentInput);
+        // comment submit btn
+        const commentSubmitBtn = document.createElement("button");
+        commentSubmitBtn.dataset.id = post.post.id;
+        commentSubmitBtn.classList.add("comment-btn-submit-deactive");
+        commentSubmitBtn.setAttribute("disabled", true);
+        commentSubmitBtn.setAttribute("id", post.post.id);
+        commentSubmitBtn.innerHTML = "Send";
+        commentSubmitBtn.addEventListener("click", handleCommentToPost);
 
-        postCard.appendChild(postActions);
+        commentFormDiv.appendChild(commentInput);
+        commentFormDiv.appendChild(commentSubmitBtn);
+
+        commentDiv.appendChild(likeBtn);
+        commentDiv.appendChild(commentFormDiv);
+
+        postCard.appendChild(commentDiv);
 
         postContainer.appendChild(postCard);
       };
@@ -404,15 +355,24 @@
       // delete a post
       const handleDeletePost = async (event) => {
         const postId = event.target.dataset.postId;
-
-        const res = await fetch(`http://localhost:5000/api/v1/post/${postId}`, {
-          method: "DELETE",
-        });
-        const result = await res.json();
-        if (result.statusCode === 200) {
-          window.location.replace("/");
-        } else {
-          alert("Post was not deleted");
+        const isConfirm = window.confirm("Are you sure to delete the post?");
+        if (isConfirm) {
+          try {
+            const res = await fetch(
+              `http://localhost:5000/api/v1/post/${postId}`,
+              {
+                method: "DELETE",
+              }
+            );
+            const result = await res.json();
+            if (result.statusCode === 200) {
+              window.location.replace("/");
+            } else {
+              alert("Post was not deleted");
+            }
+          } catch (error) {
+            console.log("Error to delete post", error);
+          }
         }
       };
 
@@ -436,24 +396,43 @@
         }
       };
 
-      // consume the post id to comment
-      let postId = "";
-      const handleCommentToAPost = () => {
-        console.log("Send the comment text");
-        const commentText = document.getElementById("comment-input-text").value;
-        console.log({ value: commentText, postId });
-        document.getElementById("comment-section").style.display = "none";
+      // handle logic if comment input value change
+      const handleChangeCommentInput = (event) => {
+        const postId = event.target.dataset.id;
+        const sendBtn = document.getElementById(postId);
+        const value = event.target.value;
+        if (value) {
+          sendBtn.removeAttribute("disabled");
+          sendBtn.classList.remove("comment-btn-submit-deactive");
+          sendBtn.classList.add("comment-btn-submit-active");
+        } else {
+          sendBtn.setAttribute("disabled", true);
+          sendBtn.classList.add("comment-btn-submit-deactive");
+          sendBtn.classList.remove("comment-btn-submit-active");
+        }
       };
 
       // comment to a post
-      const handleCommentToPost = (event) => {
-        document.getElementById("comment-section").style.display = "block";
-        console.log("Comment to", event.target.dataset.id);
-        postId = event.target.dataset.id;
-      };
-      // close comment modal
-      const handleCloseModal = () => {
-        document.getElementById("comment-section").style.display = "none";
+      const handleCommentToPost = async (event) => {
+        const currentUser = await handleFetchUser();
+        const text = document.getElementById("comment-input-tag").value;
+        const postId = event.target.dataset.id;
+        const payload = { post: postId, text, user: currentUser.id };
+        try {
+          const res = await fetch("http://localhost:5000/api/v1/comment", {
+            headers: { "Content-Type": "application/json" },
+            method: "POST",
+            body: JSON.stringify(payload),
+          });
+          const result = await res.json();
+          if (result.statusCode === 201) {
+            window.location.replace("/");
+          } else {
+            alert("Comment was not posted");
+          }
+        } catch (error) {
+          console.log("Error to post  comment");
+        }
       };
 
       // handle logout button

@@ -6,6 +6,7 @@ import { IPost } from "../dts/post/post.get.dto";
 import { pgClient } from "../utils/db.util";
 import { Post } from "../models/post.model";
 import { Like } from "../models/like.model";
+import { Comment } from "../models/comment.model";
 
 class Service {
   async createPost(data: NewPost) {
@@ -62,17 +63,24 @@ class Service {
   }
   async deletePost(postId: string) {
     try {
+      // delete all the likes if this post
       await pgClient()
         .delete(Like)
         .where(eq(Like.post, postId))
         .returning({ id: Like.id });
 
+      // delete all the comments if this post
+      await pgClient().delete(Comment).where(eq(Comment.post, postId));
+
+      // finally, delete the post
       await pgClient()
         .delete(Post)
         .where(eq(Post.id, postId))
         .returning({ id: Post.id });
-    } catch (error) {
-      throw new HTTPException(500, { message: "Post was not deleted" });
+    } catch (error: any) {
+      throw new HTTPException(500, {
+        message: error?.message,
+      });
     }
   }
 }
