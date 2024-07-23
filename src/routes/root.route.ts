@@ -3,6 +3,7 @@ import { PostRoutes } from "./post.routes";
 import { UserRoutes } from "./user.routes";
 import { AuthRoutes } from "./auth.routes";
 import { LikeRoutes } from "./like.routes";
+import { CommentRoutes } from "./comment.routes";
 
 const router = new Hono();
 
@@ -22,6 +23,10 @@ const routes = [
   {
     path: "like",
     routes: LikeRoutes,
+  },
+  {
+    path: "comment",
+    routes: CommentRoutes,
   },
 ];
 
