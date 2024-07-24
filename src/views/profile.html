@@ -152,10 +152,6 @@
           <li id="new-post-btn">
             <a class="nav-item" href="/new-post">Add post</a>
           </li>
-          <li id="register-btn">
-            <a class="nav-item" href="/register">Register</a>
-          </li>
-          <li id="login-btn"><a class="nav-item" href="/login">Login</a></li>
           <li id="profile-btn">
             <a class="nav-item" href="/profile">Profile</a>
           </li>
@@ -172,26 +168,10 @@
 
     <script>
       const postContainer = document.getElementById("posts-container");
-      const token = localStorage.getItem("accessToken");
-      const parsedToken = JSON.parse(token);
-      if (parsedToken) {
-        document.getElementById("logout-btn").style.display = "block";
-        document.getElementById("new-post-btn").style.display = "block";
-        document.getElementById("register-btn").style.display = "none";
-        document.getElementById("login-btn").style.display = "none";
-      } else {
-        document.getElementById("logout-btn").style.display = "none";
-        document.getElementById("new-post-btn").style.display = "none";
-        document.getElementById("register-btn").style.display = "block";
-        document.getElementById("login-btn").style.display = "block";
-        window.location.replace("/login");
-      }
 
       const handleFetchUser = async () => {
         try {
-          const resUser = await fetch("http://localhost:5000/api/v1/auth", {
-            headers: { authorization: parsedToken },
-          });
+          const resUser = await fetch("http://localhost:5000/api/v1/auth");
           const user = await resUser.json();
           document.title = `Profile - ${user.name}`;
           handleFetchPosts(user);

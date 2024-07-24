@@ -7,6 +7,7 @@ import { pgClient } from "../utils/db.util";
 import { Post } from "../models/post.model";
 import { Like } from "../models/like.model";
 import { Comment } from "../models/comment.model";
+import { CommentService } from "./comment.service";
 
 class Service {
   async createPost(data: NewPost) {
@@ -40,8 +41,11 @@ class Service {
       .innerJoin(User, eq(User.id, Post.user))
       .orderBy(desc(Post.updatedAt));
 
+    const comments = await CommentService.getAllComments();
+    console.log(comments);
     return data;
   }
+
   async getSinglePost(postId: string) {
     const data = await pgClient()
       .select()

@@ -97,15 +97,10 @@
       <h2>Welcome to Hono & Drizzle</h2>
       <nav>
         <ul>
-          <li id="home-btn"><a class="nav-item" href="/">Home</a></li>
-          <li id="new-post-btn">
-            <a class="nav-item" href="/new-post">Add post</a>
-          </li>
           <li id="register-btn">
             <a class="nav-item" href="/register">Register</a>
           </li>
           <li id="login-btn"><a class="nav-item" href="/login">Login</a></li>
-          <li id="logout-btn"><button class="nav-item">Logout</button></li>
         </ul>
       </nav>
     </header>
@@ -179,21 +174,6 @@
             alert("There was an error to register");
           }
         });
-      const token = localStorage.getItem("accessToken");
-      const parsedToken = JSON.parse(token);
-      if (parsedToken) {
-        document.getElementById("logout-btn").style.display = "block";
-        document.getElementById("new-post-btn").style.display = "block";
-        document.getElementById("register-btn").style.display = "none";
-        document.getElementById("login-btn").style.display = "none";
-        window.location.replace("/");
-      } else {
-        document.getElementById("logout-btn").style.display = "none";
-        document.getElementById("new-post-btn").style.display = "none";
-        document.getElementById("home-btn").style.display = "none";
-        document.getElementById("register-btn").style.display = "block";
-        document.getElementById("login-btn").style.display = "block";
-      }
     </script>
   </body>
 </html>

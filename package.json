@@ -14,14 +14,17 @@
     "bcrypt": "^5.1.1",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.30.9",
+    "ejs": "^3.1.10",
     "hono": "^4.2.7",
     "morgan": "^1.10.0",
-    "pg": "^8.11.5"
+    "pg": "^8.11.5",
+    "react": "^18.3.1"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
     "@types/node": "^20.11.17",
     "@types/pg": "^8.11.5",
+    "@types/react": "^18.3.3",
     "drizzle-kit": "^0.20.17",
     "tsx": "^4.7.1"
   }

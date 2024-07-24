@@ -1,40 +1,42 @@
 import { Context, Hono } from "hono";
 import path from "path";
 import fs from "fs";
+import { authenticate } from "../middlewares/authenticate";
+import { unauthenticate } from "../middlewares/unauthenticate";
 
 const router = new Hono();
 
-router.get("/", (c) => {
+router.get("/", authenticate, (c) => {
   const filePath = path.join(__dirname, "./", "index.html");
   const htmlFile = fs.readFileSync(filePath, "utf-8");
   return c.html(htmlFile);
 });
 
-router.get("/register", (c) => {
+router.get("/register", unauthenticate, (c) => {
   const filePath = path.join(__dirname, "./", "register.html");
   const htmlFile = fs.readFileSync(filePath, "utf-8");
   return c.html(htmlFile);
 });
 
-router.get("/login", (c) => {
+router.get("/login", unauthenticate, (c) => {
   const filePath = path.join(__dirname, "./", "login.html");
   const htmlFile = fs.readFileSync(filePath, "utf-8");
   return c.html(htmlFile);
 });
 
-router.get("/new-post", (c) => {
+router.get("/new-post", authenticate, (c) => {
   const filePath = path.join(__dirname, "./", "new-post.html");
   const htmlFile = fs.readFileSync(filePath, "utf-8");
   return c.html(htmlFile);
 });
 
-router.get("/posts/post/edit/:id", (c) => {
+router.get("/posts/post/edit/:id", authenticate, (c) => {
   const filePath = path.join(__dirname, "./", "edit-post.html");
   const htmlFile = fs.readFileSync(filePath, "utf-8");
   return c.html(htmlFile);
 });
 
-router.get("/profile", (c) => {
+router.get("/profile", authenticate, (c) => {
   const filePath = path.join(__dirname, "./", "profile.html");
   const htmlFile = fs.readFileSync(filePath, "utf-8");
   return c.html(htmlFile);
