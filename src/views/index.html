@@ -205,10 +205,12 @@
       const postDate = document.createElement("p");
       postDate.classList.add("post-date");
       const newDate = new Date(new Date(post?.post?.createdAt));
+
       const hours = newDate.getUTCHours();
       const minutes = newDate.getUTCMinutes();
       const seconds = newDate.getUTCSeconds();
-      postDate.innerHTML = `Posted at: ${hours}:${minutes}:${seconds}`;
+      postDate.innerHTML = moment(post?.post?.createdAt).fromNow();
+      // postDate.innerHTML = `Posted at: ${hours}:${minutes}:${seconds}`;
       const posterPicture = document.createElement("img");
       posterPicture.src = post?.user?.image;
       posterPicture.classList.add("profile-picture");
