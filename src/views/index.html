@@ -1,583 +1,483 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon" />
-    <title>News feeds</title>
-    <style>
-      body {
-        margin: 0%;
-        padding: 0%;
-        box-sizing: border-box;
-        background-color: aliceblue;
-        position: relative;
+<style>
+  #posts-container {
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .post-card {
+    border: 1px solid skyblue;
+    margin: 0px auto;
+    padding: 20px;
+    width: 50%;
+    border-radius: 10px;
+    background-color: white;
+  }
+
+  .poster-card-wrapper {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .profile-picture {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 0, 255, 0.493);
+  }
+
+  .poster-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .poster-name {
+    font-size: 20px;
+    margin: 0px;
+  }
+
+  .post-date {
+    margin: 0px;
+  }
+
+  .post-dropdown {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .post-edit-button {
+    border: 1px solid;
+    padding: 2px 10px;
+    font-size: 12px;
+    background-color: rgb(241, 239, 239);
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .comment-div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .like-btn {
+    width: 15%;
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+
+  .comment-form-div {
+    width: 85%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .comment-input-tag {
+    width: 100%;
+    padding: 6px 10px;
+    border: 2px solid skyblue;
+    border-radius: 5px;
+  }
+
+  .comment-input-tag:focus {
+    border: 2px solid blue;
+    outline: blue;
+  }
+
+  .comment-btn-submit-deactive {
+    background-color: gray;
+    cursor: not-allowed;
+    width: 15%;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 5px;
+    color: rgba(255, 255, 255, 0.432);
+  }
+
+  .comment-btn-submit-active {
+    background-color: blue;
+    width: 15%;
+    padding: 8px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    border: none;
+    color: white;
+  }
+
+  .comment-toggle {
+    color: blue;
+    text-decoration: underline;
+    margin-top: 5px;
+    cursor: pointer;
+  }
+
+  .comment-card {
+    background-color: rgb(232, 238, 245);
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 10px;
+  }
+
+  .commenter,
+  .comment-text {
+    margin: 0%;
+    padding: 0%;
+  }
+
+  .comment-delete-btn {
+    margin-top: 5px;
+    background-color: rgba(255, 0, 0, 0.596);
+    border: none;
+    padding: 3px 5px;
+    border-radius: 3px;
+    color: white;
+    cursor: pointer;
+  }
+</style>
+
+<body>
+  <main>
+    <section id="posts-container"></section>
+  </main>
+
+  <script>
+    const postContainer = document.getElementById("posts-container");
+
+    const handleFetchCurrentUser = async () => {
+      try {
+        const resUser = await fetch("http://localhost:5000/api/v1/auth");
+        const user = await resUser.json();
+        return user;
+      } catch (error) {
+        console.log("Failed to fetch user", error);
+      }
+    };
+
+    // fetch all the posts
+    const handleFetchPosts = async () => {
+      const res = await fetch("http://localhost:5000/api/v1/post");
+      const data = await res.json();
+      data.posts.forEach((post) => {
+        postContainer.innerHTML = "";
+        handleDisplayPosts(post);
+      });
+    };
+
+    // display post
+    const handleDisplayPosts = async (post) => {
+      const currentUser = await handleFetchCurrentUser();
+
+      const postCard = document.createElement("div");
+      postCard.classList.add("post-card");
+      // poster infos
+      const posterCardWrapper = document.createElement("div");
+      posterCardWrapper.classList.add("poster-card-wrapper");
+      const posterCard = document.createElement("div");
+      posterCard.classList.add("poster-card");
+      const postDropdown = document.createElement("div");
+      postDropdown.classList.add("post-dropdown");
+      const postDeleteButton = document.createElement("button");
+      postDeleteButton.dataset.postId = post.post.id;
+      postDeleteButton.innerHTML = "Delete";
+      postDeleteButton.addEventListener("click", handleDeletePost);
+      const postEditButton = document.createElement("a");
+      postEditButton.classList.add("post-edit-button");
+      postEditButton.innerHTML = "Edit";
+      postEditButton.setAttribute(
+        "href",
+        `/posts/post/edit/${post.post.id}?author=${post?.user?.name}&title=${post.post.title}&description=${post.post.description}`
+      );
+      const posterNameDateCard = document.createElement("div");
+      posterNameDateCard.classList.add("posterNameDateCard");
+      const posterName = document.createElement("h4");
+      posterName.classList.add("poster-name");
+      posterName.innerHTML = post?.user?.name;
+      const postDate = document.createElement("p");
+      postDate.classList.add("post-date");
+      const newDate = new Date(new Date(post?.post?.createdAt));
+      const hours = newDate.getUTCHours();
+      const minutes = newDate.getUTCMinutes();
+      const seconds = newDate.getUTCSeconds();
+      postDate.innerHTML = `Posted at: ${hours}:${minutes}:${seconds}`;
+      const posterPicture = document.createElement("img");
+      posterPicture.src = post?.user?.image;
+      posterPicture.classList.add("profile-picture");
+
+      posterNameDateCard.appendChild(posterName);
+      posterNameDateCard.appendChild(postDate);
+      posterCard.appendChild(posterPicture);
+      posterCard.appendChild(posterNameDateCard);
+      posterCard.appendChild(posterNameDateCard);
+
+      if (post?.user?.id === currentUser?.id) {
+        postDropdown.appendChild(postEditButton);
+        postDropdown.appendChild(postDeleteButton);
       }
 
-      header {
-        background-color: blue;
-        margin: 0%;
-        padding: 10px 30px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        position: sticky;
-        top: 0%;
+      posterCardWrapper.appendChild(posterCard);
+      posterCardWrapper.appendChild(postDropdown);
+      postCard.appendChild(posterCardWrapper);
+
+      // post info
+      const postTitle = document.createElement("h3");
+      postTitle.innerHTML = post?.post?.title;
+      const postDecs = document.createElement("p");
+      postDecs.innerHTML = post?.post?.description;
+      postCard.appendChild(postTitle);
+      postCard.appendChild(postDecs);
+
+      // comment post section
+      const totalLikes = await handleFetchLikesForAPost(post.post.id);
+      const commentDiv = document.createElement("div");
+      commentDiv.classList.add("comment-div");
+      const likeBtn = document.createElement("button");
+      likeBtn.dataset.id = post.post.id;
+      likeBtn.classList.add("like-btn");
+      likeBtn.innerHTML =
+        totalLikes.length > 0 ? `${totalLikes.length} Likes` : "Like";
+      likeBtn.addEventListener("click", handleLikeToPost);
+
+      const commentFormDiv = document.createElement("div");
+      commentFormDiv.classList.add("comment-form-div");
+      const commentInput = document.createElement("input");
+      commentInput.name = "comment";
+      commentInput.dataset.id = post.post.id;
+      commentInput.setAttribute("id", `comment-input-tag-${post.post.id}`);
+      commentInput.classList.add("comment-input-tag");
+      commentInput.type = "text";
+      commentInput.placeholder = "Leave a comment";
+      commentInput.addEventListener("keyup", handleChangeCommentInput);
+      // comment submit btn
+      const commentSubmitBtn = document.createElement("button");
+      commentSubmitBtn.dataset.id = post.post.id;
+      commentSubmitBtn.classList.add("comment-btn-submit-deactive");
+      commentSubmitBtn.setAttribute("disabled", true);
+      commentSubmitBtn.setAttribute("id", post.post.id);
+      commentSubmitBtn.innerHTML = "Send";
+      commentSubmitBtn.addEventListener("click", handleCommentToPost);
+
+      // comment container
+      const commentToggle = document.createElement("a");
+      commentToggle.classList.add("comment-toggle");
+      commentToggle.innerHTML = `4 comments`;
+      commentToggle.dataset.id = post.post.id;
+      commentToggle.addEventListener("click", handleToggleCommentShow);
+      const commentContainer = document.createElement("div");
+      commentContainer.classList.add("comment-container");
+      commentContainer.style.display = "none";
+
+      commentContainer.setAttribute("id", `comments-${post.post.id}`);
+
+      commentFormDiv.appendChild(commentInput);
+      commentFormDiv.appendChild(commentSubmitBtn);
+
+      commentDiv.appendChild(likeBtn);
+      commentDiv.appendChild(commentFormDiv);
+
+      postCard.appendChild(commentDiv);
+      postCard.appendChild(commentToggle);
+      postCard.appendChild(commentContainer);
+
+      postContainer.appendChild(postCard);
+    };
+
+    // show/hide comment container
+    const handleToggleCommentShow = (event) => {
+      const postId = event.target.dataset.id;
+      const getContainer = document.getElementById(`comments-${postId}`);
+      if (getContainer.style.display === "none") {
+        getContainer.style.display = "block";
+        displayComments(postId, getContainer);
+      } else {
+        getContainer.style.display = "none";
       }
+    };
 
-      header h2 {
-        margin: 0%;
-        color: white;
-      }
+    // handle displaying comments
+    const displayComments = async (postId, commentContainer) => {
+      const currentUser = await handleFetchCurrentUser();
+      commentContainer.innerHTML = "";
+      const comments = await fetchAllCommentsForAPost(postId);
+      if (comments?.length > 0) {
+        comments.forEach((comment) => {
+          const commentCard = document.createElement("div");
+          commentCard.classList.add("comment-card");
+          const commenter = document.createElement("h3");
+          commenter.classList.add("commenter");
+          commenter.innerHTML = comment?.user?.name;
+          const commentText = document.createElement("p");
+          commentText.classList.add("comment-text");
+          commentText.innerHTML = comment.text;
 
-      header nav ul {
-        display: flex;
-        align-items: center;
-        list-style: none;
-        gap: 10px;
-      }
+          const commentDeleteBtn = document.createElement("button");
+          commentDeleteBtn.dataset.id = comment.id;
+          commentDeleteBtn.dataset.postId = postId;
+          commentDeleteBtn.classList.add("comment-delete-btn");
+          commentDeleteBtn.innerHTML = "Delete";
+          commentDeleteBtn.addEventListener("click", handleDeleteComment);
 
-      .nav-item {
-        color: white;
-        text-decoration: none;
-        font-size: 20px;
-        font-family: sans-serif;
-        background-color: rgba(69, 69, 134, 0.397);
-        padding: 5px 20px;
-        border-radius: 6px;
-        border: none;
-        cursor: pointer;
-      }
-
-      .nav-item:hover {
-        background-color: rgb(69, 69, 134);
-      }
-
-      main {
-        background-color: aliceblue;
-        min-height: 100vh;
-        padding-bottom: 100px;
-      }
-
-      #posts-container {
-        padding: 10px;
-        display: flex;
-        justify-content: center;
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .post-card {
-        border: 1px solid skyblue;
-        margin: 0px auto;
-        padding: 20px;
-        width: 50%;
-        border-radius: 10px;
-        background-color: white;
-      }
-
-      .poster-card-wrapper {
-        display: flex;
-        justify-content: space-between;
-      }
-
-      .profile-picture {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        border: 2px solid rgba(0, 0, 255, 0.493);
-      }
-
-      .poster-card {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        width: 100%;
-      }
-
-      .poster-name {
-        font-size: 20px;
-        margin: 0px;
-      }
-
-      .post-date {
-        margin: 0px;
-      }
-
-      .post-dropdown {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 5px;
-      }
-
-      .post-edit-button {
-        border: 1px solid;
-        padding: 2px 10px;
-        font-size: 12px;
-        background-color: rgb(241, 239, 239);
-        cursor: pointer;
-        text-decoration: none;
-      }
-
-      .comment-div {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .like-btn {
-        width: 15%;
-        padding: 5px 10px;
-        cursor: pointer;
-      }
-
-      .comment-form-div {
-        width: 85%;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 5px;
-      }
-
-      .comment-input-tag {
-        width: 100%;
-        padding: 6px 10px;
-        border: 2px solid skyblue;
-        border-radius: 5px;
-      }
-
-      .comment-input-tag:focus {
-        border: 2px solid blue;
-        outline: blue;
-      }
-
-      .comment-btn-submit-deactive {
-        background-color: gray;
-        cursor: not-allowed;
-        width: 15%;
-        padding: 8px 10px;
-        border: none;
-        border-radius: 5px;
-        color: rgba(255, 255, 255, 0.432);
-      }
-
-      .comment-btn-submit-active {
-        background-color: blue;
-        width: 15%;
-        padding: 8px 10px;
-        cursor: pointer;
-        border-radius: 5px;
-        border: none;
-        color: white;
-      }
-
-      .comment-toggle {
-        color: blue;
-        text-decoration: underline;
-        margin-top: 5px;
-        cursor: pointer;
-      }
-
-      .comment-card {
-        background-color: rgb(232, 238, 245);
-        padding: 10px;
-        border-radius: 5px;
-        margin-top: 10px;
-      }
-
-      .commenter,
-      .comment-text {
-        margin: 0%;
-        padding: 0%;
-      }
-
-      .comment-delete-btn {
-        margin-top: 5px;
-        background-color: rgba(255, 0, 0, 0.596);
-        border: none;
-        padding: 3px 5px;
-        border-radius: 3px;
-        color: white;
-        cursor: pointer;
-      }
-    </style>
-  </head>
-  <body>
-    <header>
-      <h2>Welcome to Hono & Drizzle</h2>
-      <nav>
-        <ul>
-          <li><a class="nav-item" href="/">Home</a></li>
-          <li id="new-post-btn">
-            <a class="nav-item" href="/new-post">Add post</a>
-          </li>
-          <!-- <li id="register-btn">
-            <a class="nav-item" href="/register">Register</a>
-          </li>
-          <li id="login-btn"><a class="nav-item" href="/login">Login</a></li> -->
-          <li id="profile-btn">
-            <a class="nav-item" href="/profile">Profile</a>
-          </li>
-          <li id="logout-btn"><button class="nav-item">Logout</button></li>
-        </ul>
-      </nav>
-    </header>
-    <main>
-      <section id="posts-container"></section>
-    </main>
-    <script>
-      const postContainer = document.getElementById("posts-container");
-
-      const handleFetchUser = async () => {
-        try {
-          const resUser = await fetch("http://localhost:5000/api/v1/auth");
-          const user = await resUser.json();
-          return user;
-        } catch (error) {
-          console.log("Failed to fetch user", error);
-        }
-      };
-
-      // fetch all the posts
-      const handleFetchPosts = async () => {
-        console.log("Fetch posts");
-        const res = await fetch("http://localhost:5000/api/v1/post");
-        const data = await res.json();
-        data.posts.forEach((post) => {
-          postContainer.innerHTML = "";
-          handleDisplayPosts(post);
+          commentCard.appendChild(commenter);
+          commentCard.appendChild(commentText);
+          if (currentUser?.id === comment?.user?.id) {
+            commentCard.appendChild(commentDeleteBtn);
+          }
+          commentContainer.appendChild(commentCard);
         });
-      };
+      } else {
+        const noComments = document.createElement("h3");
+        noComments.innerHTML = "Nobody comment yet. By first commenter";
+        commentContainer.appendChild(noComments);
+      }
+    };
 
-      // display post
-      const handleDisplayPosts = async (post) => {
-        const currentUser = await handleFetchUser();
-
-        const postCard = document.createElement("div");
-        postCard.classList.add("post-card");
-        // poster infos
-        const posterCardWrapper = document.createElement("div");
-        posterCardWrapper.classList.add("poster-card-wrapper");
-        const posterCard = document.createElement("div");
-        posterCard.classList.add("poster-card");
-        const postDropdown = document.createElement("div");
-        postDropdown.classList.add("post-dropdown");
-        const postDeleteButton = document.createElement("button");
-        postDeleteButton.dataset.postId = post.post.id;
-        postDeleteButton.innerHTML = "Delete";
-        postDeleteButton.addEventListener("click", handleDeletePost);
-        const postEditButton = document.createElement("a");
-        postEditButton.classList.add("post-edit-button");
-        postEditButton.innerHTML = "Edit";
-        postEditButton.setAttribute(
-          "href",
-          `/posts/post/edit/${post.post.id}?author=${post?.user?.name}&title=${post.post.title}&description=${post.post.description}`
+    // delete single comment
+    const handleDeleteComment = async (event) => {
+      const commentId = event.target.dataset.id;
+      const postId = event.target.dataset.postId;
+      try {
+        const res = await fetch(
+          `http://localhost:5000/api/v1/comment/${commentId}`,
+          { method: "DELETE" }
         );
-        const posterNameDateCard = document.createElement("div");
-        posterNameDateCard.classList.add("posterNameDateCard");
-        const posterName = document.createElement("h4");
-        posterName.classList.add("poster-name");
-        posterName.innerHTML = post?.user?.name;
-        const postDate = document.createElement("p");
-        postDate.classList.add("post-date");
-        const newDate = new Date(new Date(post?.post?.createdAt));
-        const hours = newDate.getUTCHours();
-        const minutes = newDate.getUTCMinutes();
-        const seconds = newDate.getUTCSeconds();
-        postDate.innerHTML = `Posted at: ${hours}:${minutes}:${seconds}`;
-        const posterPicture = document.createElement("img");
-        posterPicture.src = post?.user?.image;
-        posterPicture.classList.add("profile-picture");
-
-        posterNameDateCard.appendChild(posterName);
-        posterNameDateCard.appendChild(postDate);
-        posterCard.appendChild(posterPicture);
-        posterCard.appendChild(posterNameDateCard);
-        posterCard.appendChild(posterNameDateCard);
-
-        if (post?.user?.id === currentUser?.id) {
-          postDropdown.appendChild(postEditButton);
-          postDropdown.appendChild(postDeleteButton);
-        }
-
-        posterCardWrapper.appendChild(posterCard);
-        posterCardWrapper.appendChild(postDropdown);
-        postCard.appendChild(posterCardWrapper);
-
-        // post info
-        const postTitle = document.createElement("h3");
-        postTitle.innerHTML = post?.post?.title;
-        const postDecs = document.createElement("p");
-        postDecs.innerHTML = post?.post?.description;
-        postCard.appendChild(postTitle);
-        postCard.appendChild(postDecs);
-
-        // comment post section
-        const totalLikes = await handleFetchLikesForAPost(post.post.id);
-        const commentDiv = document.createElement("div");
-        commentDiv.classList.add("comment-div");
-        const likeBtn = document.createElement("button");
-        likeBtn.dataset.id = post.post.id;
-        likeBtn.classList.add("like-btn");
-        likeBtn.innerHTML =
-          totalLikes.length > 0 ? `${totalLikes.length} Likes` : "Like";
-        likeBtn.addEventListener("click", handleLikeToPost);
-
-        const commentFormDiv = document.createElement("div");
-        commentFormDiv.classList.add("comment-form-div");
-        const commentInput = document.createElement("input");
-        commentInput.name = "comment";
-        commentInput.dataset.id = post.post.id;
-        commentInput.setAttribute("id", `comment-input-tag-${post.post.id}`);
-        commentInput.classList.add("comment-input-tag");
-        commentInput.type = "text";
-        commentInput.placeholder = "Leave a comment";
-        commentInput.addEventListener("keyup", handleChangeCommentInput);
-        // comment submit btn
-        const commentSubmitBtn = document.createElement("button");
-        commentSubmitBtn.dataset.id = post.post.id;
-        commentSubmitBtn.classList.add("comment-btn-submit-deactive");
-        commentSubmitBtn.setAttribute("disabled", true);
-        commentSubmitBtn.setAttribute("id", post.post.id);
-        commentSubmitBtn.innerHTML = "Send";
-        commentSubmitBtn.addEventListener("click", handleCommentToPost);
-
-        // comment container
-        const commentToggle = document.createElement("a");
-        commentToggle.classList.add("comment-toggle");
-        commentToggle.innerHTML = `4 comments`;
-        commentToggle.dataset.id = post.post.id;
-        commentToggle.addEventListener("click", handleToggleCommentShow);
-        const commentContainer = document.createElement("div");
-        commentContainer.classList.add("comment-container");
-        commentContainer.style.display = "none";
-
-        commentContainer.setAttribute("id", `comments-${post.post.id}`);
-
-        commentFormDiv.appendChild(commentInput);
-        commentFormDiv.appendChild(commentSubmitBtn);
-
-        commentDiv.appendChild(likeBtn);
-        commentDiv.appendChild(commentFormDiv);
-
-        postCard.appendChild(commentDiv);
-        postCard.appendChild(commentToggle);
-        postCard.appendChild(commentContainer);
-
-        postContainer.appendChild(postCard);
-      };
-
-      // show/hide comment container
-      const handleToggleCommentShow = (event) => {
-        const postId = event.target.dataset.id;
-        const getContainer = document.getElementById(`comments-${postId}`);
-        if (getContainer.style.display === "none") {
-          getContainer.style.display = "block";
+        const result = await res.json();
+        if (result.statusCode === 200) {
+          const getContainer = document.getElementById(`comments-${postId}`);
           displayComments(postId, getContainer);
         } else {
-          getContainer.style.display = "none";
+          alert("Comment was not deleted");
         }
-      };
+      } catch (error) {
+        console.log("Failed to delete comment", error);
+      }
+    };
 
-      // handle displaying comments
-      const displayComments = async (postId, commentContainer) => {
-        const currentUser = await handleFetchUser();
-        commentContainer.innerHTML = "";
-        const comments = await fetchAllCommentsForAPost(postId);
-        if (comments?.length > 0) {
-          comments.forEach((comment) => {
-            const commentCard = document.createElement("div");
-            commentCard.classList.add("comment-card");
-            const commenter = document.createElement("h3");
-            commenter.classList.add("commenter");
-            commenter.innerHTML = comment?.user?.name;
-            const commentText = document.createElement("p");
-            commentText.classList.add("comment-text");
-            commentText.innerHTML = comment.text;
+    // handle fetch comment by post id
+    const fetchAllCommentsForAPost = async (postId) => {
+      try {
+        const res = await fetch(
+          `http://localhost:5000/api/v1/comment/by-post/${postId}`
+        );
+        const data = await res.json();
+        return data.comments;
+      } catch (error) {
+        console.log("Failed to fetch comments");
+      }
+    };
 
-            const commentDeleteBtn = document.createElement("button");
-            commentDeleteBtn.dataset.id = comment.id;
-            commentDeleteBtn.dataset.postId = postId;
-            commentDeleteBtn.classList.add("comment-delete-btn");
-            commentDeleteBtn.innerHTML = "Delete";
-            commentDeleteBtn.addEventListener("click", handleDeleteComment);
+    // fetch likes for a post
+    const handleFetchLikesForAPost = async (postId) => {
+      try {
+        const res = await fetch(
+          `http://localhost:5000/api/v1/like/by-post/${postId}`
+        );
+        const data = await res.json();
+        return data.likes;
+      } catch (error) {
+        console.log("Error to fetch likes", error);
+      }
+    };
 
-            commentCard.appendChild(commenter);
-            commentCard.appendChild(commentText);
-            if (currentUser?.id === comment?.user?.id) {
-              commentCard.appendChild(commentDeleteBtn);
-            }
-            commentContainer.appendChild(commentCard);
-          });
-        } else {
-          const noComments = document.createElement("h3");
-          noComments.innerHTML = "Nobody comment yet. By first commenter";
-          commentContainer.appendChild(noComments);
-        }
-      };
-
-      // delete single comment
-      const handleDeleteComment = async (event) => {
-        const commentId = event.target.dataset.id;
-        const postId = event.target.dataset.postId;
+    // delete a post
+    const handleDeletePost = async (event) => {
+      const postId = event.target.dataset.postId;
+      const isConfirm = window.confirm("Are you sure to delete the post?");
+      if (isConfirm) {
         try {
           const res = await fetch(
-            `http://localhost:5000/api/v1/comment/${commentId}`,
-            { method: "DELETE" }
+            `http://localhost:5000/api/v1/post/${postId}`,
+            {
+              method: "DELETE",
+            }
           );
           const result = await res.json();
           if (result.statusCode === 200) {
-            const getContainer = document.getElementById(`comments-${postId}`);
-            displayComments(postId, getContainer);
+            handleFetchPosts();
           } else {
-            alert("Comment was not deleted");
+            alert("Post was not deleted");
           }
         } catch (error) {
-          console.log("Failed to delete comment", error);
+          console.log("Error to delete post", error);
         }
-      };
+      }
+    };
 
-      // handle fetch comment by post id
-      const fetchAllCommentsForAPost = async (postId) => {
-        try {
-          const res = await fetch(
-            `http://localhost:5000/api/v1/comment/by-post/${postId}`
-          );
-          const data = await res.json();
-          return data.comments;
-        } catch (error) {
-          console.log("Failed to fetch comments");
-        }
-      };
+    // like to a post
+    const handleLikeToPost = async (event) => {
+      const postId = event.target.dataset.id;
+      const currentUser = await handleFetchCurrentUser();
+      const payload = { post: postId, user: currentUser.id };
+      const res = await fetch("http://localhost:5000/api/v1/like", {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+        body: JSON.stringify({ post: postId, user: currentUser.id }),
+      });
+      const result = await res.json();
+      if (result.statusCode === 201) {
+        handleFetchPosts();
+      } else {
+        alert("Post was not liked");
+      }
+    };
 
-      // fetch likes for a post
-      const handleFetchLikesForAPost = async (postId) => {
-        try {
-          const res = await fetch(
-            `http://localhost:5000/api/v1/like/by-post/${postId}`
-          );
-          const data = await res.json();
-          return data.likes;
-        } catch (error) {
-          console.log("Error to fetch likes", error);
-        }
-      };
+    // handle logic if comment input value change
+    const handleChangeCommentInput = (event) => {
+      const postId = event.target.dataset.id;
+      const sendBtn = document.getElementById(postId);
+      const value = event.target.value;
+      if (value) {
+        sendBtn.removeAttribute("disabled");
+        sendBtn.classList.remove("comment-btn-submit-deactive");
+        sendBtn.classList.add("comment-btn-submit-active");
+      } else {
+        sendBtn.setAttribute("disabled", true);
+        sendBtn.classList.add("comment-btn-submit-deactive");
+        sendBtn.classList.remove("comment-btn-submit-active");
+      }
+    };
 
-      // delete a post
-      const handleDeletePost = async (event) => {
-        const postId = event.target.dataset.postId;
-        const isConfirm = window.confirm("Are you sure to delete the post?");
-        if (isConfirm) {
-          try {
-            const res = await fetch(
-              `http://localhost:5000/api/v1/post/${postId}`,
-              {
-                method: "DELETE",
-              }
-            );
-            const result = await res.json();
-            if (result.statusCode === 200) {
-              handleFetchPosts();
-            } else {
-              alert("Post was not deleted");
-            }
-          } catch (error) {
-            console.log("Error to delete post", error);
-          }
-        }
+    // comment to a post
+    const handleCommentToPost = async (event) => {
+      const currentUser = await handleFetchCurrentUser();
+      const postId = event.target.dataset.id;
+      const text = document.getElementById(`comment-input-tag-${postId}`);
+      const payload = {
+        post: postId,
+        text: text.value,
+        user: currentUser.id,
       };
-
-      // like to a post
-      const handleLikeToPost = async (event) => {
-        const postId = event.target.dataset.id;
-        const currentUser = await handleFetchUser();
-        const payload = { post: postId, user: currentUser.id };
-        const res = await fetch("http://localhost:5000/api/v1/like", {
-          headers: {
-            "Content-Type": "application/json",
-          },
+      try {
+        const res = await fetch("http://localhost:5000/api/v1/comment", {
+          headers: { "Content-Type": "application/json" },
           method: "POST",
-          body: JSON.stringify({ post: postId, user: currentUser.id }),
+          body: JSON.stringify(payload),
         });
         const result = await res.json();
         if (result.statusCode === 201) {
-          handleFetchPosts();
+          const getContainer = document.getElementById(`comments-${postId}`);
+          getContainer.style.display = "block";
+          text.value = "";
+          displayComments(postId, getContainer);
         } else {
-          alert("Post was not liked");
+          alert("Comment was not posted");
         }
-      };
+      } catch (error) {
+        console.log("Error to post  comment");
+      }
+    };
 
-      // handle logic if comment input value change
-      const handleChangeCommentInput = (event) => {
-        const postId = event.target.dataset.id;
-        const sendBtn = document.getElementById(postId);
-        const value = event.target.value;
-        if (value) {
-          sendBtn.removeAttribute("disabled");
-          sendBtn.classList.remove("comment-btn-submit-deactive");
-          sendBtn.classList.add("comment-btn-submit-active");
-        } else {
-          sendBtn.setAttribute("disabled", true);
-          sendBtn.classList.add("comment-btn-submit-deactive");
-          sendBtn.classList.remove("comment-btn-submit-active");
-        }
-      };
-
-      // comment to a post
-      const handleCommentToPost = async (event) => {
-        const currentUser = await handleFetchUser();
-        const postId = event.target.dataset.id;
-        const text = document.getElementById(`comment-input-tag-${postId}`);
-        const payload = {
-          post: postId,
-          text: text.value,
-          user: currentUser.id,
-        };
-        try {
-          const res = await fetch("http://localhost:5000/api/v1/comment", {
-            headers: { "Content-Type": "application/json" },
-            method: "POST",
-            body: JSON.stringify(payload),
-          });
-          const result = await res.json();
-          if (result.statusCode === 201) {
-            const getContainer = document.getElementById(`comments-${postId}`);
-            getContainer.style.display = "block";
-            text.value = "";
-            displayComments(postId, getContainer);
-          } else {
-            alert("Comment was not posted");
-          }
-        } catch (error) {
-          console.log("Error to post  comment");
-        }
-      };
-
-      // handle logout button
-      document
-        .getElementById("logout-btn")
-        .addEventListener("click", async () => {
-          try {
-            const res = await fetch(
-              "http://localhost:5000/api/v1/auth/logout",
-              { method: "POST" }
-            );
-            const result = await res.json();
-            if (result?.statusCode === 200) {
-              window.location.replace("/login");
-            }
-          } catch (error) {
-            console.log("Error to logout", error);
-          }
-          // localStorage.removeItem("accessToken");
-          // window.location.reload();
-        });
-
-      // call all the default functions
-      handleFetchPosts();
-    </script>
-  </body>
-</html>
+    // call all the default functions
+    handleFetchPosts();
+  </script>
+</body>

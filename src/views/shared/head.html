@@ -1,0 +1,153 @@
+<style>
+  body {
+    margin: 0%;
+    padding: 0%;
+    box-sizing: border-box;
+    background-color: aliceblue;
+    position: relative;
+  }
+  main {
+    background-color: aliceblue;
+    min-height: 100vh;
+    padding-bottom: 100px;
+  }
+  header {
+    background-color: blue;
+    margin: 0%;
+    padding: 10px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0%;
+  }
+
+  header h2 {
+    margin: 0%;
+    padding: 20px 0px;
+    color: white;
+  }
+
+  header nav ul {
+    display: flex;
+    align-items: center;
+    list-style: none;
+    gap: 10px;
+  }
+
+  .nav-item {
+    color: white;
+    text-decoration: none;
+    font-size: 20px;
+    font-family: sans-serif;
+    background-color: rgba(69, 69, 134, 0.397);
+    padding: 5px 20px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+  }
+
+  .nav-item:hover {
+    background-color: rgb(69, 69, 134);
+  }
+</style>
+
+<header>
+  <h2>Welcome to Hono & Drizzle</h2>
+  <nav>
+    <ul id="nav-menu"></ul>
+  </nav>
+</header>
+
+<script>
+  const itemsPublic = [
+    {
+      name: "Register",
+      path: "/register",
+    },
+    {
+      name: "Login",
+      path: "/login",
+    },
+  ];
+
+  const itemsPrivate = [
+    {
+      name: "Home",
+      path: "/",
+    },
+    {
+      name: "Add Post",
+      path: "/new-post",
+    },
+    {
+      name: "Profile",
+      path: "/profile",
+    },
+  ];
+
+  const navUlMenu = document.getElementById("nav-menu");
+  const authUrl = "http://localhost:5000/api/v1/auth";
+
+  const getLoggedInUser = async () => {
+    try {
+      const res = await fetch(authUrl);
+      const user = await res.json();
+      return user;
+    } catch (error) {
+      console.log("Failed to fetch user", error);
+    }
+  };
+
+  const handleDisplayNavList = async () => {
+    try {
+      const user = await getLoggedInUser();
+      if (user && user?.id) {
+        itemsPrivate.forEach((item) => {
+          createItem(item);
+        });
+        const navItemLogout = document.createElement("li");
+        navItemLogout.classList.add("nav-item");
+        navItemLogout.innerHTML = "Logout";
+        navItemLogout.setAttribute("id", "logout-btn");
+        navItemLogout.addEventListener("click", handleUserLogout);
+        navUlMenu.appendChild(navItemLogout);
+      } else {
+        itemsPublic.forEach((item) => {
+          createItem(item);
+        });
+      }
+    } catch (error) {
+      itemsPublic.forEach((item) => {
+        createItem(item);
+      });
+      console.log("Failed to fetch user", error);
+    }
+  };
+
+  const createItem = (item) => {
+    const navItem = document.createElement("li");
+    const navItemAnchor = document.createElement("a");
+    navItemAnchor.classList.add("nav-item");
+    navItemAnchor.href = item.path;
+    navItemAnchor.innerHTML = item.name;
+    navItem.appendChild(navItemAnchor);
+    navUlMenu.appendChild(navItem);
+  };
+
+  const handleUserLogout = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/v1/auth/logout", {
+        method: "POST",
+      });
+      const result = await res.json();
+      if (result?.statusCode === 200) {
+        window.location.replace("/login");
+      }
+    } catch (error) {
+      console.log("Error to logout", error);
+    }
+  };
+
+  handleDisplayNavList();
+</script>

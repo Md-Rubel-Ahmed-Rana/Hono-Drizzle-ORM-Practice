@@ -5,47 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Create new post</title>
     <style>
-      body {
-        margin: 0%;
-        padding: 0%;
-        box-sizing: border-box;
-      }
-      header {
-        background-color: blue;
-        margin: 0%;
-        padding: 10px 30px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        position: sticky;
-        top: 0%;
-      }
-      header h2 {
-        margin: 0%;
-        color: white;
-      }
-      header nav ul {
-        display: flex;
-        align-items: center;
-        list-style: none;
-        gap: 10px;
-      }
-      .nav-item {
-        color: white;
-        text-decoration: none;
-        font-size: 20px;
-        font-family: sans-serif;
-        background-color: rgba(69, 69, 134, 0.397);
-        padding: 5px 20px;
-        border-radius: 6px;
-        border: none;
-        cursor: pointer;
-      }
-
-      .nav-item:hover {
-        background-color: rgb(69, 69, 134);
-      }
-
       #new-post-section {
         background-color: aliceblue;
         display: flex;
@@ -99,21 +58,6 @@
     </style>
   </head>
   <body>
-    <header>
-      <h2>Welcome to Hono & Drizzle</h2>
-      <nav>
-        <ul>
-          <li><a class="nav-item" href="/">Home</a></li>
-          <li id="new-post-btn">
-            <a class="nav-item" href="/new-post">Add post</a>
-          </li>
-          <li id="profile-btn">
-            <a class="nav-item" href="/profile">Profile</a>
-          </li>
-          <li id="logout-btn"><button class="nav-item">Logout</button></li>
-        </ul>
-      </nav>
-    </header>
     <main>
       <section id="new-post-section">
         <form id="new-post-form">
@@ -147,8 +91,6 @@
     </main>
 
     <script>
-      const token = localStorage.getItem("accessToken");
-
       document
         .getElementById("new-post-form")
         .addEventListener("submit", async (event) => {
@@ -157,8 +99,7 @@
           const title = form.title.value;
           const description = form.description.value;
           try {
-            const resUser = await fetch("http://localhost:5000/api/v1/auth");
-            const user = await resUser.json();
+            const user = await getLoggedInUser();
             const res = await fetch("http://localhost:5000/api/v1/post", {
               headers: {
                 "Content-Type": "application/json",
@@ -177,11 +118,6 @@
             alert("There was an error to new-post");
           }
         });
-
-      document.getElementById("logout-btn").addEventListener("click", () => {
-        localStorage.removeItem("accessToken");
-        window.location.reload();
-      });
     </script>
   </body>
 </html>
