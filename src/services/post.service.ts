@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, count, sql } from "drizzle-orm";
 import { NewPost } from "../dts/post/post.create.dto";
 import { HTTPException } from "hono/http-exception";
 import { User } from "../models/user.model";
@@ -7,7 +7,6 @@ import { pgClient } from "../utils/db.util";
 import { Post } from "../models/post.model";
 import { Like } from "../models/like.model";
 import { Comment } from "../models/comment.model";
-import { CommentService } from "./comment.service";
 
 class Service {
   async createPost(data: NewPost) {
@@ -35,14 +34,25 @@ class Service {
     const data = await pgClient()
       .select({
         post: Post,
-        user: { id: User.id, name: User.name },
+        user: {
+          id: User.id,
+          name: User.name,
+        },
+        likes: sql`(
+          SELECT COUNT(*) 
+          FROM likes 
+          WHERE likes.post = posts.id
+        )`.as("likes"),
+        comments: sql`(
+          SELECT COUNT(*) 
+          FROM comments 
+          WHERE comments.post = posts.id
+        )`.as("comments"),
       })
       .from(Post)
       .innerJoin(User, eq(User.id, Post.user))
       .orderBy(desc(Post.updatedAt));
 
-    const comments = await CommentService.getAllComments();
-    console.log(comments);
     return data;
   }
 

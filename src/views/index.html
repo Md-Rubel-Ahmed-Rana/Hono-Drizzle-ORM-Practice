@@ -153,16 +153,6 @@
   <script>
     const postContainer = document.getElementById("posts-container");
 
-    const handleFetchCurrentUser = async () => {
-      try {
-        const resUser = await fetch("http://localhost:5000/api/v1/auth");
-        const user = await resUser.json();
-        return user;
-      } catch (error) {
-        console.log("Failed to fetch user", error);
-      }
-    };
-
     // fetch all the posts
     const handleFetchPosts = async () => {
       const res = await fetch("http://localhost:5000/api/v1/post");
@@ -175,7 +165,7 @@
 
     // display post
     const handleDisplayPosts = async (post) => {
-      const currentUser = await handleFetchCurrentUser();
+      const currentUser = await getLoggedInUser();
 
       const postCard = document.createElement("div");
       postCard.classList.add("post-card");
@@ -205,12 +195,7 @@
       const postDate = document.createElement("p");
       postDate.classList.add("post-date");
       const newDate = new Date(new Date(post?.post?.createdAt));
-
-      const hours = newDate.getUTCHours();
-      const minutes = newDate.getUTCMinutes();
-      const seconds = newDate.getUTCSeconds();
-      postDate.innerHTML = moment(post?.post?.createdAt).fromNow();
-      // postDate.innerHTML = `Posted at: ${hours}:${minutes}:${seconds}`;
+      postDate.innerHTML = moment(newDate).fromNow();
       const posterPicture = document.createElement("img");
       posterPicture.src = post?.user?.image;
       posterPicture.classList.add("profile-picture");
@@ -239,14 +224,12 @@
       postCard.appendChild(postDecs);
 
       // comment post section
-      const totalLikes = await handleFetchLikesForAPost(post.post.id);
       const commentDiv = document.createElement("div");
       commentDiv.classList.add("comment-div");
       const likeBtn = document.createElement("button");
       likeBtn.dataset.id = post.post.id;
       likeBtn.classList.add("like-btn");
-      likeBtn.innerHTML =
-        totalLikes.length > 0 ? `${totalLikes.length} Likes` : "Like";
+      likeBtn.innerHTML = `${post.likes} Likes`;
       likeBtn.addEventListener("click", handleLikeToPost);
 
       const commentFormDiv = document.createElement("div");
@@ -271,7 +254,7 @@
       // comment container
       const commentToggle = document.createElement("a");
       commentToggle.classList.add("comment-toggle");
-      commentToggle.innerHTML = `4 comments`;
+      commentToggle.innerHTML = `${post.comments} comments`;
       commentToggle.dataset.id = post.post.id;
       commentToggle.addEventListener("click", handleToggleCommentShow);
       const commentContainer = document.createElement("div");
@@ -307,7 +290,7 @@
 
     // handle displaying comments
     const displayComments = async (postId, commentContainer) => {
-      const currentUser = await handleFetchCurrentUser();
+      const currentUser = await getLoggedInUser();
       commentContainer.innerHTML = "";
       const comments = await fetchAllCommentsForAPost(postId);
       if (comments?.length > 0) {
@@ -354,6 +337,7 @@
         const result = await res.json();
         if (result.statusCode === 200) {
           const getContainer = document.getElementById(`comments-${postId}`);
+          handleFetchPosts();
           displayComments(postId, getContainer);
         } else {
           alert("Comment was not deleted");
@@ -373,19 +357,6 @@
         return data.comments;
       } catch (error) {
         console.log("Failed to fetch comments");
-      }
-    };
-
-    // fetch likes for a post
-    const handleFetchLikesForAPost = async (postId) => {
-      try {
-        const res = await fetch(
-          `http://localhost:5000/api/v1/like/by-post/${postId}`
-        );
-        const data = await res.json();
-        return data.likes;
-      } catch (error) {
-        console.log("Error to fetch likes", error);
       }
     };
 
@@ -416,7 +387,7 @@
     // like to a post
     const handleLikeToPost = async (event) => {
       const postId = event.target.dataset.id;
-      const currentUser = await handleFetchCurrentUser();
+      const currentUser = await getLoggedInUser();
       const payload = { post: postId, user: currentUser.id };
       const res = await fetch("http://localhost:5000/api/v1/like", {
         headers: {
@@ -451,7 +422,7 @@
 
     // comment to a post
     const handleCommentToPost = async (event) => {
-      const currentUser = await handleFetchCurrentUser();
+      const currentUser = await getLoggedInUser();
       const postId = event.target.dataset.id;
       const text = document.getElementById(`comment-input-tag-${postId}`);
       const payload = {
@@ -470,6 +441,7 @@
           const getContainer = document.getElementById(`comments-${postId}`);
           getContainer.style.display = "block";
           text.value = "";
+          handleFetchPosts();
           displayComments(postId, getContainer);
         } else {
           alert("Comment was not posted");
