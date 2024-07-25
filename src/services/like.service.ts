@@ -1,37 +1,41 @@
 import { and, eq } from "drizzle-orm";
-import { Like } from "../models/like.model";
 import { pgClient } from "../utils/db.util";
+import { models } from "../models";
 
 class Service {
   async likeToAPost({ user, post }: { user: string; post: string }) {
     const isExist = await pgClient()
       .select()
-      .from(Like)
-      .where(and(eq(Like.post, post), eq(Like.user, user)));
+      .from(models.Like)
+      .where(and(eq(models.Like.post, post), eq(models.Like.user, user)));
     if (isExist.length > 0) {
       const result = await pgClient()
-        .delete(Like)
-        .where(eq(Like.user, user))
+        .delete(models.Like)
+        .where(eq(models.Like.user, user))
         .returning();
       return result;
     } else {
       const result = await pgClient()
-        .insert(Like)
+        .insert(models.Like)
         .values({ user, post })
         .returning();
       return result;
     }
   }
   async getAllLikes() {
-    const data = await pgClient().select().from(Like);
+    const data = await pgClient().select().from(models.Like);
     return data;
   }
 
   async getAllLikesForAPost(postId: string) {
     const data = await pgClient()
-      .select({ id: Like.id, user: Like.user, post: Like.post })
-      .from(Like)
-      .where(eq(Like.post, postId));
+      .select({
+        id: models.Like.id,
+        user: models.Like.user,
+        post: models.Like.post,
+      })
+      .from(models.Like)
+      .where(eq(models.Like.post, postId));
     return data;
   }
 }

@@ -1,9 +1,9 @@
+import { models } from "../models";
 import { pgClient } from "../utils/db.util";
-import { User } from "../models/user.model";
 
 class Service {
   async getUsers() {
-    return await pgClient().select().from(User);
+    return await pgClient().select().from(models.User);
   }
 }
 

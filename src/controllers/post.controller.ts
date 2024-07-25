@@ -20,13 +20,16 @@ class Controller {
       throw new HTTPException(error.status, { message: error?.message });
     }
   }
-  async getAllPosts({ json }: Context) {
+  async getAllPosts({ req, json }: Context) {
     try {
-      const data = await PostService.getAllPosts();
+      const { page, limit } = req.query();
+      const resourceLimit = limit ? Number(limit) : 10;
+      const currentPage = page ? Number(page) : 1;
+      const data = await PostService.getAllPosts(resourceLimit, currentPage);
       return json({
         statusCode: 200,
         message: "Posts fetched successfully",
-        posts: data,
+        ...data,
       });
     } catch (error: any) {
       throw new HTTPException(error.status, { message: error?.message });

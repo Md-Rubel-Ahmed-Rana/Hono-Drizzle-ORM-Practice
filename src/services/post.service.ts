@@ -1,19 +1,19 @@
-import { desc, eq, count, sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { NewPost } from "../dts/post/post.create.dto";
 import { HTTPException } from "hono/http-exception";
-import { User } from "../models/user.model";
 import { IPost } from "../dts/post/post.get.dto";
 import { pgClient } from "../utils/db.util";
-import { Post } from "../models/post.model";
-import { Like } from "../models/like.model";
-import { Comment } from "../models/comment.model";
+import { models } from "../models";
 
 class Service {
   async createPost(data: NewPost) {
     if (!data) {
       throw new HTTPException(400, { message: "Post data required" });
     }
-    const result = await pgClient().insert(Post).values(data).returning();
+    const result = await pgClient()
+      .insert(models.Post)
+      .values(data)
+      .returning();
     return result[0];
   }
 
@@ -22,21 +22,26 @@ class Service {
       throw new HTTPException(400, { message: "User id required" });
     }
     const data = await pgClient()
-      .select({ post: Post, user: { id: User.id, name: User.name } })
-      .from(Post)
-      .where(eq(Post.user, userId))
-      .rightJoin(User, eq(User.id, Post.user));
+      .select({
+        post: models.Post,
+        user: { id: models.User.id, name: models.User.name },
+      })
+      .from(models.Post)
+      .where(eq(models.Post.user, userId))
+      .rightJoin(models.User, eq(models.User.id, models.Post.user));
 
     return data;
   }
 
-  async getAllPosts() {
+  async getAllPosts(limit: number, page: number) {
+    const skip = (page - 1) * limit;
+
     const data = await pgClient()
       .select({
-        post: Post,
+        post: models.Post,
         user: {
-          id: User.id,
-          name: User.name,
+          id: models.User.id,
+          name: models.User.name,
         },
         likes: sql`(
           SELECT COUNT(*) 
@@ -49,18 +54,27 @@ class Service {
           WHERE comments.post = posts.id
         )`.as("comments"),
       })
-      .from(Post)
-      .innerJoin(User, eq(User.id, Post.user))
-      .orderBy(desc(Post.updatedAt));
+      .from(models.Post)
+      .innerJoin(models.User, eq(models.User.id, models.Post.user))
+      .orderBy(desc(models.Post.updatedAt))
+      .offset(skip)
+      .limit(limit);
 
-    return data;
+    const totalCountResult = await pgClient()
+      .select({
+        count: sql`COUNT(*)`.as("total"),
+      })
+      .from(models.Post);
+    const total = Number(totalCountResult[0].count);
+
+    return { total, limit, page, posts: data };
   }
 
   async getSinglePost(postId: string) {
     const data = await pgClient()
       .select()
-      .from(Post)
-      .where(eq(Post.id, postId));
+      .from(models.Post)
+      .where(eq(models.Post.id, postId));
     return data[0];
   }
 
@@ -69,28 +83,31 @@ class Service {
       throw new HTTPException(400, { message: "Post id required" });
     }
     const updatedUserId = await pgClient()
-      .update(Post)
+      .update(models.Post)
       .set({ ...updatedData })
-      .where(eq(Post.id, postId))
+      .where(eq(models.Post.id, postId))
       .returning();
     return updatedUserId[0];
   }
+
   async deletePost(postId: string) {
     try {
       // delete all the likes if this post
       await pgClient()
-        .delete(Like)
-        .where(eq(Like.post, postId))
-        .returning({ id: Like.id });
+        .delete(models.Like)
+        .where(eq(models.Like.post, postId))
+        .returning({ id: models.Like.id });
 
       // delete all the comments if this post
-      await pgClient().delete(Comment).where(eq(Comment.post, postId));
+      await pgClient()
+        .delete(models.Comment)
+        .where(eq(models.Comment.post, postId));
 
       // finally, delete the post
       await pgClient()
-        .delete(Post)
-        .where(eq(Post.id, postId))
-        .returning({ id: Post.id });
+        .delete(models.Post)
+        .where(eq(models.Post.id, postId))
+        .returning({ id: models.Post.id });
     } catch (error: any) {
       throw new HTTPException(500, {
         message: error?.message,

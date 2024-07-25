@@ -1,7 +1,6 @@
 import { eq } from "drizzle-orm";
 import { pgClient } from "../utils/db.util";
-import { Comment } from "../models/comment.model";
-import { User } from "../models/user.model";
+import { models } from "../models";
 
 class Service {
   async commentToAPost({
@@ -14,32 +13,34 @@ class Service {
     text: string;
   }) {
     const result = await pgClient()
-      .insert(Comment)
+      .insert(models.Comment)
       .values({ user, post, text })
       .returning();
     return result;
   }
   async getAllComments() {
-    const data = await pgClient().select().from(Comment);
+    const data = await pgClient().select().from(models.Comment);
     return data;
   }
 
   async getAllCommentForAPost(postId: string) {
     const data = await pgClient()
       .select({
-        id: Comment.id,
-        text: Comment.text,
-        createdAt: Comment.createdAt,
-        user: { id: User.id, name: User.name },
+        id: models.Comment.id,
+        text: models.Comment.text,
+        createdAt: models.Comment.createdAt,
+        user: { id: models.User.id, name: models.User.name },
       })
-      .from(Comment)
-      .innerJoin(User, eq(User.id, Comment.user))
-      .where(eq(Comment.post, postId));
+      .from(models.Comment)
+      .innerJoin(models.User, eq(models.User.id, models.Comment.user))
+      .where(eq(models.Comment.post, postId));
     return data;
   }
 
   async deleteComment(commentId: string) {
-    await pgClient().delete(Comment).where(eq(Comment.id, commentId));
+    await pgClient()
+      .delete(models.Comment)
+      .where(eq(models.Comment.id, commentId));
   }
 }
 

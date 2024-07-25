@@ -1,4 +1,3 @@
-import { User } from "./../models/user.model";
 import { UserLoginDto } from "../dts/user/user.login.dto";
 import { UserPostDto } from "../dts/user/user.post.dto";
 import bcrypt from "bcrypt";
@@ -8,6 +7,7 @@ import { UserGetDto } from "../dts/user/user.get.dto";
 import { HTTPException } from "hono/http-exception";
 import { pgClient } from "../utils/db.util";
 import { config } from "../config/env";
+import { models } from "../models";
 
 class Service {
   async register(user: UserPostDto) {
@@ -16,14 +16,14 @@ class Service {
     }
     const hashedPassword = await bcrypt.hash(user.password, 12);
     user.password = hashedPassword;
-    await pgClient().insert(User).values(user).returning();
+    await pgClient().insert(models.User).values(user).returning();
   }
 
   async login({ email, password }: UserLoginDto) {
     const user = await pgClient()
       .select()
-      .from(User)
-      .where(eq(User.email, email));
+      .from(models.User)
+      .where(eq(models.User.email, email));
 
     if (user.length <= 0) {
       throw new HTTPException(404, { message: "User not found" });
@@ -54,8 +54,8 @@ class Service {
     }
     const user = await pgClient()
       .select()
-      .from(User)
-      .where(eq(User.id, isVerified.id));
+      .from(models.User)
+      .where(eq(models.User.id, isVerified.id));
     if (user.length <= 0) {
       throw new HTTPException(404, { message: "User not found" });
     }
