@@ -1,6 +1,6 @@
 <style>
   #search-container {
-    width: 52%;
+    width: 52.2%;
     margin: 0px auto;
   }
   #search-container > #search {
@@ -160,6 +160,17 @@
     color: white;
     cursor: pointer;
   }
+
+  #pagination-container {
+    margin: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+  }
+  #pagination-container > {
+    background-color: blue;
+  }
 </style>
 
 <body>
@@ -172,6 +183,10 @@
         placeholder="Search something..."
       />
     </div>
+    <div id="pagination-container">
+      <button id="prev-btn">Prev</button>
+      <button id="next-btn">Next</button>
+    </div>
     <section id="posts-container"></section>
   </main>
 
@@ -182,123 +197,122 @@
     const handleFetchPosts = async () => {
       const res = await fetch("http://localhost:5000/api/v1/post");
       const data = await res.json();
-      data.posts.forEach((post) => {
-        postContainer.innerHTML = "";
-        handleDisplayPosts(post);
-      });
+      return data;
     };
 
     // display post
-    const handleDisplayPosts = async (post) => {
+    const handleDisplayPosts = async () => {
+      const data = await handleFetchPosts();
       const currentUser = await getLoggedInUser();
+      data.posts.forEach((post) => {
+        const postCard = document.createElement("div");
+        postCard.classList.add("post-card");
+        // poster infos
+        const posterCardWrapper = document.createElement("div");
+        posterCardWrapper.classList.add("poster-card-wrapper");
+        const posterCard = document.createElement("div");
+        posterCard.classList.add("poster-card");
+        const postDropdown = document.createElement("div");
+        postDropdown.classList.add("post-dropdown");
+        const postDeleteButton = document.createElement("button");
+        postDeleteButton.dataset.postId = post.post.id;
+        postDeleteButton.innerHTML = "Delete";
+        postDeleteButton.addEventListener("click", handleDeletePost);
+        const postEditButton = document.createElement("a");
+        postEditButton.classList.add("post-edit-button");
+        postEditButton.innerHTML = "Edit";
+        postEditButton.setAttribute(
+          "href",
+          `/posts/post/edit/${post.post.id}?author=${post?.user?.name}&title=${post.post.title}&description=${post.post.description}`
+        );
+        const posterNameDateCard = document.createElement("div");
+        posterNameDateCard.classList.add("posterNameDateCard");
+        const posterName = document.createElement("h4");
+        posterName.classList.add("poster-name");
+        posterName.innerHTML = post?.user?.name;
+        const postDate = document.createElement("p");
+        postDate.classList.add("post-date");
+        const newDate = new Date(new Date(post?.post?.createdAt));
+        postDate.innerHTML = moment(newDate).fromNow();
+        const posterPicture = document.createElement("img");
+        posterPicture.src = post?.user?.image;
+        posterPicture.classList.add("profile-picture");
 
-      const postCard = document.createElement("div");
-      postCard.classList.add("post-card");
-      // poster infos
-      const posterCardWrapper = document.createElement("div");
-      posterCardWrapper.classList.add("poster-card-wrapper");
-      const posterCard = document.createElement("div");
-      posterCard.classList.add("poster-card");
-      const postDropdown = document.createElement("div");
-      postDropdown.classList.add("post-dropdown");
-      const postDeleteButton = document.createElement("button");
-      postDeleteButton.dataset.postId = post.post.id;
-      postDeleteButton.innerHTML = "Delete";
-      postDeleteButton.addEventListener("click", handleDeletePost);
-      const postEditButton = document.createElement("a");
-      postEditButton.classList.add("post-edit-button");
-      postEditButton.innerHTML = "Edit";
-      postEditButton.setAttribute(
-        "href",
-        `/posts/post/edit/${post.post.id}?author=${post?.user?.name}&title=${post.post.title}&description=${post.post.description}`
-      );
-      const posterNameDateCard = document.createElement("div");
-      posterNameDateCard.classList.add("posterNameDateCard");
-      const posterName = document.createElement("h4");
-      posterName.classList.add("poster-name");
-      posterName.innerHTML = post?.user?.name;
-      const postDate = document.createElement("p");
-      postDate.classList.add("post-date");
-      const newDate = new Date(new Date(post?.post?.createdAt));
-      postDate.innerHTML = moment(newDate).fromNow();
-      const posterPicture = document.createElement("img");
-      posterPicture.src = post?.user?.image;
-      posterPicture.classList.add("profile-picture");
+        posterNameDateCard.appendChild(posterName);
+        posterNameDateCard.appendChild(postDate);
+        posterCard.appendChild(posterPicture);
+        posterCard.appendChild(posterNameDateCard);
+        posterCard.appendChild(posterNameDateCard);
 
-      posterNameDateCard.appendChild(posterName);
-      posterNameDateCard.appendChild(postDate);
-      posterCard.appendChild(posterPicture);
-      posterCard.appendChild(posterNameDateCard);
-      posterCard.appendChild(posterNameDateCard);
+        if (post?.user?.id === currentUser?.id) {
+          postDropdown.appendChild(postEditButton);
+          postDropdown.appendChild(postDeleteButton);
+        }
 
-      if (post?.user?.id === currentUser?.id) {
-        postDropdown.appendChild(postEditButton);
-        postDropdown.appendChild(postDeleteButton);
-      }
+        posterCardWrapper.appendChild(posterCard);
+        posterCardWrapper.appendChild(postDropdown);
+        postCard.appendChild(posterCardWrapper);
 
-      posterCardWrapper.appendChild(posterCard);
-      posterCardWrapper.appendChild(postDropdown);
-      postCard.appendChild(posterCardWrapper);
+        // post info
+        const postTitle = document.createElement("h3");
+        postTitle.innerHTML = post?.post?.title;
+        const postDecs = document.createElement("p");
+        postDecs.innerHTML = post?.post?.description;
+        postCard.appendChild(postTitle);
+        postCard.appendChild(postDecs);
 
-      // post info
-      const postTitle = document.createElement("h3");
-      postTitle.innerHTML = post?.post?.title;
-      const postDecs = document.createElement("p");
-      postDecs.innerHTML = post?.post?.description;
-      postCard.appendChild(postTitle);
-      postCard.appendChild(postDecs);
+        // comment post section
+        const commentDiv = document.createElement("div");
+        commentDiv.classList.add("comment-div");
+        const likeBtn = document.createElement("button");
+        likeBtn.dataset.id = post.post.id;
+        likeBtn.classList.add("like-btn");
+        likeBtn.innerHTML = `${post.likes} Likes`;
+        likeBtn.addEventListener("click", handleLikeToPost);
 
-      // comment post section
-      const commentDiv = document.createElement("div");
-      commentDiv.classList.add("comment-div");
-      const likeBtn = document.createElement("button");
-      likeBtn.dataset.id = post.post.id;
-      likeBtn.classList.add("like-btn");
-      likeBtn.innerHTML = `${post.likes} Likes`;
-      likeBtn.addEventListener("click", handleLikeToPost);
+        const commentFormDiv = document.createElement("div");
+        commentFormDiv.classList.add("comment-form-div");
+        const commentInput = document.createElement("input");
+        commentInput.name = "comment";
+        commentInput.dataset.id = post.post.id;
+        commentInput.setAttribute("id", `comment-input-tag-${post.post.id}`);
+        commentInput.classList.add("comment-input-tag");
+        commentInput.type = "text";
+        commentInput.placeholder = "Leave a comment";
+        commentInput.addEventListener("keyup", handleChangeCommentInput);
+        // comment submit btn
+        const commentSubmitBtn = document.createElement("button");
+        commentSubmitBtn.dataset.id = post.post.id;
+        commentSubmitBtn.classList.add("comment-btn-submit-deactive");
+        commentSubmitBtn.setAttribute("disabled", true);
+        commentSubmitBtn.setAttribute("id", post.post.id);
+        commentSubmitBtn.innerHTML = "Send";
+        commentSubmitBtn.addEventListener("click", handleCommentToPost);
 
-      const commentFormDiv = document.createElement("div");
-      commentFormDiv.classList.add("comment-form-div");
-      const commentInput = document.createElement("input");
-      commentInput.name = "comment";
-      commentInput.dataset.id = post.post.id;
-      commentInput.setAttribute("id", `comment-input-tag-${post.post.id}`);
-      commentInput.classList.add("comment-input-tag");
-      commentInput.type = "text";
-      commentInput.placeholder = "Leave a comment";
-      commentInput.addEventListener("keyup", handleChangeCommentInput);
-      // comment submit btn
-      const commentSubmitBtn = document.createElement("button");
-      commentSubmitBtn.dataset.id = post.post.id;
-      commentSubmitBtn.classList.add("comment-btn-submit-deactive");
-      commentSubmitBtn.setAttribute("disabled", true);
-      commentSubmitBtn.setAttribute("id", post.post.id);
-      commentSubmitBtn.innerHTML = "Send";
-      commentSubmitBtn.addEventListener("click", handleCommentToPost);
+        // comment container
+        const commentToggle = document.createElement("a");
+        commentToggle.classList.add("comment-toggle");
+        commentToggle.innerHTML = `${post.comments} comments`;
+        commentToggle.dataset.id = post.post.id;
+        commentToggle.addEventListener("click", handleToggleCommentShow);
+        const commentContainer = document.createElement("div");
+        commentContainer.classList.add("comment-container");
+        commentContainer.style.display = "none";
 
-      // comment container
-      const commentToggle = document.createElement("a");
-      commentToggle.classList.add("comment-toggle");
-      commentToggle.innerHTML = `${post.comments} comments`;
-      commentToggle.dataset.id = post.post.id;
-      commentToggle.addEventListener("click", handleToggleCommentShow);
-      const commentContainer = document.createElement("div");
-      commentContainer.classList.add("comment-container");
-      commentContainer.style.display = "none";
+        commentContainer.setAttribute("id", `comments-${post.post.id}`);
 
-      commentContainer.setAttribute("id", `comments-${post.post.id}`);
+        commentFormDiv.appendChild(commentInput);
+        commentFormDiv.appendChild(commentSubmitBtn);
 
-      commentFormDiv.appendChild(commentInput);
-      commentFormDiv.appendChild(commentSubmitBtn);
+        commentDiv.appendChild(likeBtn);
+        commentDiv.appendChild(commentFormDiv);
 
-      commentDiv.appendChild(likeBtn);
-      commentDiv.appendChild(commentFormDiv);
+        postCard.appendChild(commentDiv);
+        postCard.appendChild(commentToggle);
+        postCard.appendChild(commentContainer);
 
-      postCard.appendChild(commentDiv);
-      postCard.appendChild(commentToggle);
-      postCard.appendChild(commentContainer);
-
-      postContainer.appendChild(postCard);
+        postContainer.appendChild(postCard);
+      });
     };
 
     // show/hide comment container
@@ -477,6 +491,7 @@
     };
 
     // call all the default functions
-    handleFetchPosts();
+    // handleFetchPosts();
+    handleDisplayPosts();
   </script>
 </body>

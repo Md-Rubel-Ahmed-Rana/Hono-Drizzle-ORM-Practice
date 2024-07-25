@@ -4,6 +4,7 @@ import { HTTPException } from "hono/http-exception";
 import { IPost } from "../dts/post/post.get.dto";
 import { pgClient } from "../utils/db.util";
 import { models } from "../models";
+import { generatePaginationLinks } from "../utils/generatePaginationLinks";
 
 class Service {
   async createPost(data: NewPost) {
@@ -66,8 +67,9 @@ class Service {
       })
       .from(models.Post);
     const total = Number(totalCountResult[0].count);
+    const links = generatePaginationLinks(page, limit, total);
 
-    return { total, limit, page, posts: data };
+    return { total, limit, page, links, posts: data };
   }
 
   async getSinglePost(postId: string) {
