@@ -168,13 +168,27 @@
     align-items: center;
     gap: 10px;
   }
-  #pagination-container > {
+  #pagination-container > .active-button {
     background-color: blue;
+    padding: 5px 20px;
+    border-radius: 6px;
+    border: none;
+    color: white;
+    cursor: pointer;
+  }
+  #pagination-container > .deactive-button {
+    background-color: gray;
+    padding: 5px 20px;
+    border-radius: 6px;
+    border: none;
+    color: white;
+    cursor: not-allowed;
   }
 </style>
 
 <body>
   <main>
+    <!-- show search input here  -->
     <div id="search-container">
       <input
         type="text"
@@ -183,26 +197,77 @@
         placeholder="Search something..."
       />
     </div>
-    <div id="pagination-container">
-      <button id="prev-btn">Prev</button>
-      <button id="next-btn">Next</button>
-    </div>
+
+    <!-- show pagination buttons  -->
+    <div id="pagination-container"></div>
+
+    <!-- show all the posts here  -->
     <section id="posts-container"></section>
   </main>
 
   <script>
     const postContainer = document.getElementById("posts-container");
+    const paginateContainer = document.getElementById("pagination-container");
+    const defaultPostApi = "http://localhost:5000/api/v1/post?page=1&limit=5";
+
+    // handle show pagination buttons
+    const handleShowPaginationButtons = async (url) => {
+      paginateContainer.innerHTML = "";
+      const { links } = await handleFetchPosts(url);
+
+      const prevButton = document.createElement("button");
+      prevButton.setAttribute("id", "prev-btn");
+      prevButton.innerHTML = "Prev";
+      if (links.prev) {
+        prevButton.classList.add("active-button");
+        prevButton.dataset.link = links.prev;
+        prevButton.addEventListener("click", handleGoPrevPagePost);
+      } else {
+        prevButton.setAttribute("disabled", true);
+        prevButton.classList.add("deactive-button");
+      }
+
+      const nextButton = document.createElement("button");
+      nextButton.setAttribute("id", "next-btn");
+      nextButton.innerHTML = "Next";
+      if (links.next) {
+        nextButton.classList.add("active-button");
+        nextButton.dataset.link = links.next;
+        nextButton.addEventListener("click", handleGoNextPagePost);
+      } else {
+        nextButton.setAttribute("disabled", true);
+        nextButton.classList.add("deactive-button");
+      }
+
+      paginateContainer.appendChild(prevButton);
+      paginateContainer.appendChild(nextButton);
+    };
+
+    // handle fetch next paginated posts
+    const handleGoNextPagePost = async (event) => {
+      const nextLink = event.target.dataset.link;
+      await handleDisplayPosts(nextLink);
+      handleShowPaginationButtons(nextLink);
+    };
+
+    // handle fetch prev paginated posts
+    const handleGoPrevPagePost = async (event) => {
+      const prevLink = event.target.dataset.link;
+      await handleDisplayPosts(prevLink);
+      handleShowPaginationButtons(prevLink);
+    };
 
     // fetch all the posts
-    const handleFetchPosts = async () => {
-      const res = await fetch("http://localhost:5000/api/v1/post");
+    const handleFetchPosts = async (url) => {
+      const res = await fetch(url);
       const data = await res.json();
       return data;
     };
 
     // display post
-    const handleDisplayPosts = async () => {
-      const data = await handleFetchPosts();
+    const handleDisplayPosts = async (url) => {
+      postContainer.innerHTML = "";
+      const data = await handleFetchPosts(url);
       const currentUser = await getLoggedInUser();
       data.posts.forEach((post) => {
         const postCard = document.createElement("div");
@@ -492,6 +557,7 @@
 
     // call all the default functions
     // handleFetchPosts();
-    handleDisplayPosts();
+    handleDisplayPosts(defaultPostApi);
+    handleShowPaginationButtons(defaultPostApi);
   </script>
 </body>
