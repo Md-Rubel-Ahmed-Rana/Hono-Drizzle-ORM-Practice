@@ -89,7 +89,7 @@
   ];
 
   const navUlMenu = document.getElementById("nav-menu");
-  const authUrl = "http://localhost:5000/api/v1/auth";
+  const authUrl = "https://hono-drizzle-app.onrender.com/api/v1/auth";
 
   const getLoggedInUser = async () => {
     try {
@@ -139,9 +139,12 @@
 
   const handleUserLogout = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/v1/auth/logout", {
-        method: "POST",
-      });
+      const res = await fetch(
+        "https://hono-drizzle-app.onrender.com/api/v1/auth/logout",
+        {
+          method: "POST",
+        }
+      );
       const result = await res.json();
       if (result?.statusCode === 200) {
         window.location.replace("/login");

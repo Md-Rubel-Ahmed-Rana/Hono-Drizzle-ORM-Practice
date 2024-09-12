@@ -130,7 +130,7 @@
       const handleFetchPosts = async () => {
         const user = await getLoggedInUser();
         const res = await fetch(
-          `http://localhost:5000/api/v1/post/me/${user.id}`
+          `https://hono-drizzle-app.onrender.com/api/v1/post/me/${user.id}`
         );
         const data = await res.json();
         displayUserData(user, data?.data?.length);
@@ -219,9 +219,12 @@
 
       const handleDeletePost = async (event) => {
         const postId = event.target.dataset.postId;
-        const res = await fetch(`http://localhost:5000/api/v1/post/${postId}`, {
-          method: "DELETE",
-        });
+        const res = await fetch(
+          `https://hono-drizzle-app.onrender.com/api/v1/post/${postId}`,
+          {
+            method: "DELETE",
+          }
+        );
         const result = await res.json();
         if (result.statusCode === 200) {
           window.location.replace("/");

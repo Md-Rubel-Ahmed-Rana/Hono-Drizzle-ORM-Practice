@@ -100,13 +100,16 @@
           const description = form.description.value;
           try {
             const user = await getLoggedInUser();
-            const res = await fetch("http://localhost:5000/api/v1/post", {
-              headers: {
-                "Content-Type": "application/json",
-              },
-              method: "POST",
-              body: JSON.stringify({ title, description, user: user.id }),
-            });
+            const res = await fetch(
+              "https://hono-drizzle-app.onrender.com/api/v1/post",
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                method: "POST",
+                body: JSON.stringify({ title, description, user: user.id }),
+              }
+            );
             const result = await res.json();
             if (result.statusCode === 201) {
               window.location.replace("/");

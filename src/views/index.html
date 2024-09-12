@@ -208,7 +208,8 @@
   <script>
     const postContainer = document.getElementById("posts-container");
     const paginateContainer = document.getElementById("pagination-container");
-    const defaultPostApi = "http://localhost:5000/api/v1/post?page=1&limit=5";
+    const defaultPostApi =
+      "https://hono-drizzle-app.onrender.com/api/v1/post?page=1&limit=5";
 
     // handle show pagination buttons
     const handleShowPaginationButtons = async (url) => {
@@ -435,7 +436,7 @@
       const postId = event.target.dataset.postId;
       try {
         const res = await fetch(
-          `http://localhost:5000/api/v1/comment/${commentId}`,
+          `https://hono-drizzle-app.onrender.com/api/v1/comment/${commentId}`,
           { method: "DELETE" }
         );
         const result = await res.json();
@@ -455,7 +456,7 @@
     const fetchAllCommentsForAPost = async (postId) => {
       try {
         const res = await fetch(
-          `http://localhost:5000/api/v1/comment/by-post/${postId}`
+          `https://hono-drizzle-app.onrender.com/api/v1/comment/by-post/${postId}`
         );
         const data = await res.json();
         return data.comments;
@@ -471,7 +472,7 @@
       if (isConfirm) {
         try {
           const res = await fetch(
-            `http://localhost:5000/api/v1/post/${postId}`,
+            `https://hono-drizzle-app.onrender.com/api/v1/post/${postId}`,
             {
               method: "DELETE",
             }
@@ -493,13 +494,16 @@
       const postId = event.target.dataset.id;
       const currentUser = await getLoggedInUser();
       const payload = { post: postId, user: currentUser.id };
-      const res = await fetch("http://localhost:5000/api/v1/like", {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-        body: JSON.stringify({ post: postId, user: currentUser.id }),
-      });
+      const res = await fetch(
+        "https://hono-drizzle-app.onrender.com/api/v1/like",
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+          body: JSON.stringify({ post: postId, user: currentUser.id }),
+        }
+      );
       const result = await res.json();
       if (result.statusCode === 201) {
         handleFetchPosts();
@@ -535,11 +539,14 @@
         user: currentUser.id,
       };
       try {
-        const res = await fetch("http://localhost:5000/api/v1/comment", {
-          headers: { "Content-Type": "application/json" },
-          method: "POST",
-          body: JSON.stringify(payload),
-        });
+        const res = await fetch(
+          "https://hono-drizzle-app.onrender.com/api/v1/comment",
+          {
+            headers: { "Content-Type": "application/json" },
+            method: "POST",
+            body: JSON.stringify(payload),
+          }
+        );
         const result = await res.json();
         if (result.statusCode === 201) {
           const getContainer = document.getElementById(`comments-${postId}`);

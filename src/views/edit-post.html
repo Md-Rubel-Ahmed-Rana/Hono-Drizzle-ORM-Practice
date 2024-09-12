@@ -91,7 +91,9 @@
 
   const fetchSinglePost = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/v1/post/${postId}`);
+      const res = await fetch(
+        `https://hono-drizzle-app.onrender.com/api/v1/post/${postId}`
+      );
       const data = await res.json();
       const post = data?.post;
       document.getElementById("title").value = post?.title;
@@ -111,16 +113,19 @@
       const title = form.title.value;
       const description = form.description.value;
       try {
-        const res = await fetch(`http://localhost:5000/api/v1/post/${postId}`, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          method: "PATCH",
-          body: JSON.stringify({
-            title,
-            description,
-          }),
-        });
+        const res = await fetch(
+          `https://hono-drizzle-app.onrender.com/api/v1/post/${postId}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            method: "PATCH",
+            body: JSON.stringify({
+              title,
+              description,
+            }),
+          }
+        );
         const data = await res.json();
         if (data?.statusCode) {
           window.location.replace("/");

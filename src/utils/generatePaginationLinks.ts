@@ -9,10 +9,14 @@ export const generatePaginationLinks = (
     prev:
       page === 1
         ? ""
-        : `http://localhost:5000/api/v1/post?page=${page - 1}&limit=${limit}`,
-    self: `http://localhost:5000/api/v1/post?page=${page}&limit=${limit}`,
+        : `https://hono-drizzle-app.onrender.com/api/v1/post?page=${
+            page - 1
+          }&limit=${limit}`,
+    self: `https://hono-drizzle-app.onrender.com/api/v1/post?page=${page}&limit=${limit}`,
     next: haveNext
-      ? `http://localhost:5000/api/v1/post?page=${page + 1}&limit=${limit}`
+      ? `https://hono-drizzle-app.onrender.com/api/v1/post?page=${
+          page + 1
+        }&limit=${limit}`
       : "",
   };
 
