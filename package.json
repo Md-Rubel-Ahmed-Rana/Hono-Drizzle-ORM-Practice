@@ -5,6 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
     "generate": "drizzle-kit generate:pg --schema=./src/models/*",
     "migrate": "node -r esbuild-register ./src/config/migrate.ts",
     "update:schema": "yarn generate && yarn migrate"

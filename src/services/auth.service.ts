@@ -33,7 +33,7 @@ class Service {
       email: userEmail,
       password: encryptedPassword,
     } = user[0] as UserGetDto;
-    const matchPassword = bcrypt.compare(password, encryptedPassword);
+    const matchPassword = await bcrypt.compare(password, encryptedPassword);
     if (!matchPassword) {
       throw new HTTPException(404, { message: "Invalid email or password" });
     }
@@ -48,7 +48,7 @@ class Service {
     if (!token) {
       throw new HTTPException(400, { message: "Invalid token" });
     }
-    const isVerified = await verify(token, config.jwt.accessTokenSecret);
+    const isVerified: any = await verify(token, config.jwt.accessTokenSecret);
     if (!isVerified) {
       throw new HTTPException(401, { message: "Unauthenticated" });
     }
